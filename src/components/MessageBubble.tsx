@@ -12,13 +12,15 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     <div className={`flex gap-4 ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={`flex max-w-[85%] gap-3 rounded-lg px-4 py-3 ${
-          isUser
-            ? "bg-blue-600 text-white"
-            : "bg-slate-800 text-slate-100 shadow"
+          isUser ? "bg-accent-orange text-dark" : "bg-card text-main shadow"
         }`}
       >
         <div className="mt-1 shrink-0">
-          {isUser ? <User size={18} /> : <Bot size={18} />}
+          {isUser ? (
+            <User size={18} />
+          ) : (
+            <Bot size={18} className="text-accent-orange" />
+          )}
         </div>
         <div className="min-w-0 space-y-2">
           <p className="whitespace-pre-wrap text-sm">{message.content}</p>
@@ -29,8 +31,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
                   key={attachment.id}
                   className={`rounded border p-2 text-xs ${
                     isUser
-                      ? "border-blue-500 bg-blue-700"
-                      : "border-slate-600 bg-slate-700"
+                      ? "border-accent-orange-hard bg-accent-orange-soft"
+                      : "border-border-color bg-input"
                   }`}
                 >
                   {attachment.type === "image" ? (

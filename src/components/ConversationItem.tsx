@@ -18,13 +18,16 @@ export function ConversationItem({
     <div
       className={`group mb-1 flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm ${
         isActive
-          ? "bg-slate-700 text-white"
-          : "text-slate-300 hover:bg-slate-800"
+          ? "bg-card text-accent-orange"
+          : "text-muted hover:bg-card hover:text-main"
       }`}
       onClick={onSelect}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <MessageSquare size={14} className="shrink-0" />
+        <MessageSquare
+          size={14}
+          className={`shrink-0 ${isActive ? "text-accent-orange" : ""}`}
+        />
         <span className="truncate">{conversation.title}</span>
       </div>
       <button
@@ -32,7 +35,7 @@ export function ConversationItem({
           e.stopPropagation();
           onDelete();
         }}
-        className="ml-2 shrink-0 rounded p-1 opacity-0 hover:bg-slate-700 group-hover:opacity-100"
+        className="ml-2 shrink-0 rounded bg-danger-bg p-1.5 text-danger-text opacity-0 ring-1 ring-danger-border transition-opacity hover:bg-danger-bg-hover group-hover:opacity-100"
         aria-label="Delete conversation"
       >
         <Trash2 size={14} />

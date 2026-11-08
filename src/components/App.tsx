@@ -50,7 +50,7 @@ export default function App() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen bg-slate-900 text-slate-100">
+    <div className="flex h-screen bg-body text-main">
       <Sidebar
         conversations={conversations}
         currentId={currentConversation?.id ?? null}
@@ -62,19 +62,21 @@ export default function App() {
       />
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center border-b border-slate-700 bg-slate-800 px-4 py-3">
+        <header className="flex items-center border-b border-border-color bg-card px-4 py-3">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="mr-3 rounded p-1 hover:bg-slate-700 md:hidden"
+            className="mr-3 rounded p-1 hover:bg-panel md:hidden"
             aria-label="Open menu"
           >
             <Menu size={20} />
           </button>
-          <h1 className="text-lg font-semibold">NanoGPT Chat</h1>
+          <h1 className="text-lg font-semibold text-accent-orange">
+            NanoGPT Chat
+          </h1>
           <div className="ml-auto">
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="text-sm text-slate-400 hover:text-slate-200"
+              className="rounded bg-button-bg px-3 py-1.5 text-sm text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover"
             >
               {config?.apiKey ? "Settings" : "Set API key"}
             </button>

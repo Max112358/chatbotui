@@ -67,14 +67,14 @@ export function MessageInput({
   }, []);
 
   return (
-    <div className="border-t border-slate-700 bg-slate-800 p-4">
+    <div className="border-t border-border-color bg-panel p-4">
       <div className="mx-auto max-w-3xl">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((attachment) => (
               <div
                 key={attachment.id}
-                className="flex items-center gap-2 rounded bg-slate-700 px-2 py-1 text-xs text-slate-200"
+                className="flex items-center gap-2 rounded bg-card px-2 py-1 text-xs text-main"
               >
                 <span className="max-w-[150px] truncate">
                   {attachment.name}
@@ -82,7 +82,7 @@ export function MessageInput({
                 <button
                   type="button"
                   onClick={() => removeAttachment(attachment.id)}
-                  className="text-slate-400 hover:text-red-400"
+                  className="text-muted hover:text-danger-text"
                   aria-label={`Remove ${attachment.name}`}
                 >
                   ×
@@ -104,7 +104,7 @@ export function MessageInput({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || isUploading || isStreaming}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-700 hover:text-slate-200 disabled:opacity-50"
+            className="rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
             aria-label="Attach file"
           >
             <Paperclip size={20} />
@@ -132,14 +132,14 @@ export function MessageInput({
             }
             disabled={disabled || isStreaming}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-400 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+            className="max-h-32 flex-1 resize-none rounded border border-border-color bg-input px-3 py-2 text-sm text-main placeholder-muted ring-1 ring-transparent focus:border-accent-orange focus:outline-none focus:ring-accent-orange-hard disabled:opacity-50"
           />
 
           {isStreaming ? (
             <button
               type="button"
               onClick={onStop}
-              className="rounded-full bg-red-600 p-2 text-white hover:bg-red-700"
+              className="rounded bg-danger-bg p-2 text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
               aria-label="Stop generation"
             >
               <Square size={20} fill="currentColor" />
@@ -152,7 +152,7 @@ export function MessageInput({
                 isUploading ||
                 (!content.trim() && attachments.length === 0)
               }
-              className="rounded-full bg-blue-600 p-2 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
               aria-label="Send message"
             >
               <Send size={20} />
