@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Menu } from "lucide-react";
 import { useApiConfig } from "@/hooks/useApiConfig";
 import { useConversations } from "@/hooks/useConversations";
@@ -46,6 +46,30 @@ export default function App() {
   const selectedModelInfo = useMemo(
     () => fetchedModels.find((m) => m.id === selectedModel),
     [fetchedModels, selectedModel],
+  );
+
+  // Sync selected model with the current conversation
+  useEffect(() => {
+    if (currentConversation) {
+      setSelectedModel(currentConversation.model);
+    } else {
+      setSelectedModel(config?.model ?? DEFAULT_CONFIG.model);
+    }
+  }, [currentConversation, config]);
+
+  // Update the conversation's model when the user changes it
+  const handleModelChange = useCallback(
+    (model: string) => {
+      setSelectedModel(model);
+      if (currentConversation) {
+        updateConversation(currentConversation.id, (c) => ({
+          ...c,
+          model,
+          updatedAt: Date.now(),
+        }));
+      }
+    },
+    [currentConversation, updateConversation],
   );
 
   const isReady = configLoaded && conversationsLoaded;
@@ -101,7 +125,7 @@ export default function App() {
           onStop={stop}
           isStreaming={isStreaming}
           model={selectedModel}
-          onModelChange={setSelectedModel}
+          onModelChange={handleModelChange}
           config={config}
           currentConversation={currentConversation}
           selectedModelInfo={selectedModelInfo}
