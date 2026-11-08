@@ -1,5 +1,6 @@
 import { Message } from "@/types";
 import { User, Bot } from "lucide-react";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface MessageBubbleProps {
   message: Message;
@@ -23,7 +24,9 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         </div>
         <div className="min-w-0 space-y-2">
-          <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+          <div className="whitespace-pre-wrap text-sm">
+            <MarkdownRenderer content={message.content} />
+          </div>
           {message.attachments.length > 0 && (
             <div className="space-y-2">
               {message.attachments.map((attachment) => (
