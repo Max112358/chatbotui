@@ -10,6 +10,12 @@ export const AVAILABLE_MODELS = [
   "xaiomi/mimo-v2.6-pro",
 ];
 
+export const MODEL_CONTEXT_LENGTHS: Record<string, number> = {
+  "moonshotai/kimi-k2.7-code": 256000,
+  "z-ai/glm-5.3:thinking": 128000,
+  "xaiomi/mimo-v2.6-pro": 128000,
+};
+
 export const DEFAULT_CONFIG: ApiConfig = {
   apiKey: "",
   baseUrl: DEFAULT_BASE_URL,
