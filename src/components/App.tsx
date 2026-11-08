@@ -146,9 +146,6 @@ export default function App() {
           setSelectedModel(newConfig.model);
         }}
       />
-      <ModelDebugInfo config={config} />
-      <ContextDebugInfo selectedModelInfo={selectedModelInfo} config={config} />
-      <ApiDump config={config} model={selectedModel} />
     </div>
   );
 }
