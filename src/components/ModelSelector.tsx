@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { ApiConfig, ModelInfo } from "@/types";
 import { useModels } from "@/hooks/useModels";
 import { AVAILABLE_MODELS } from "@/constants";
-import { ChevronDown, RefreshCw, AlertCircle } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 
 interface ModelSelectorProps {
   value: string;
@@ -19,12 +19,7 @@ export function ModelSelector({
   disabled,
   modelInfos: propModelInfos,
 }: ModelSelectorProps) {
-  const {
-    models: fetchedModels,
-    isLoading,
-    error,
-    refetch,
-  } = useModels(config);
+  const { models: fetchedModels, isLoading, refetch } = useModels(config);
   const modelInfos = propModelInfos ?? fetchedModels;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -139,23 +134,6 @@ export function ModelSelector({
           <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
         </button>
       </div>
-
-      <div className="mt-1 flex items-center gap-2 text-xs text-muted">
-        <span>{fetchedModels.length} API models</span>
-        {isLoading && <span>• loading</span>}
-        {error && (
-          <>
-            <span className="text-danger-text">• error</span>
-            <AlertCircle size={12} className="text-danger-text" />
-          </>
-        )}
-      </div>
-
-      {error && (
-        <div className="mt-1 max-w-64 rounded bg-danger-bg p-2 text-xs text-danger-text">
-          {error}
-        </div>
-      )}
 
       {isOpen && (
         <div className="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-64 overflow-auto rounded border border-border-color bg-panel py-1 shadow-xl">
