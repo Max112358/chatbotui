@@ -27,16 +27,18 @@ export function SettingsModal({ isOpen, config, onSave }: SettingsModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h2 className="mb-2 text-xl font-semibold">API Settings</h2>
-        <p className="mb-4 text-sm text-gray-600">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-md rounded-lg bg-slate-800 p-6 shadow-xl">
+        <h2 className="mb-2 text-xl font-semibold text-slate-100">
+          API Settings
+        </h2>
+        <p className="mb-4 text-sm text-slate-400">
           Configure any OpenAI-compatible endpoint. Settings are stored only in
           your browser.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-300">
               API Key
             </label>
             <input
@@ -46,11 +48,11 @@ export function SettingsModal({ isOpen, config, onSave }: SettingsModalProps) {
                 setForm((f) => ({ ...f, apiKey: e.target.value }))
               }
               placeholder="sk-..."
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-300">
               Base URL
             </label>
             <input
@@ -60,11 +62,11 @@ export function SettingsModal({ isOpen, config, onSave }: SettingsModalProps) {
                 setForm((f) => ({ ...f, baseUrl: e.target.value }))
               }
               placeholder="https://api.nano-gpt.com/api/v1"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="w-full rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium text-slate-300">
               Model
             </label>
             <input
@@ -73,8 +75,8 @@ export function SettingsModal({ isOpen, config, onSave }: SettingsModalProps) {
               onChange={(e) =>
                 setForm((f) => ({ ...f, model: e.target.value }))
               }
-              placeholder="openai/gpt-6.1-sol"
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              placeholder="moonshotai/kimi-k2.7-code"
+              className="w-full rounded border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
             />
           </div>
           <button

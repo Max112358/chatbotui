@@ -17,7 +17,9 @@ export function ConversationItem({
   return (
     <div
       className={`group mb-1 flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm ${
-        isActive ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+        isActive
+          ? "bg-slate-700 text-white"
+          : "text-slate-300 hover:bg-slate-800"
       }`}
       onClick={onSelect}
     >
@@ -30,7 +32,7 @@ export function ConversationItem({
           e.stopPropagation();
           onDelete();
         }}
-        className="ml-2 shrink-0 rounded p-1 opacity-0 hover:bg-gray-700 group-hover:opacity-100"
+        className="ml-2 shrink-0 rounded p-1 opacity-0 hover:bg-slate-700 group-hover:opacity-100"
         aria-label="Delete conversation"
       >
         <Trash2 size={14} />

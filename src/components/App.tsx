@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
+import { useApiConfig } from "@/hooks/useApiConfig";
 import { useConversations } from "@/hooks/useConversations";
 import { useChat } from "@/hooks/useChat";
-import { useApiConfig } from "@/hooks/useApiConfig";
 import { DEFAULT_CONFIG } from "@/constants";
 import { SettingsModal } from "./SettingsModal";
 import { Sidebar } from "./Sidebar";
 import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
-import { ApiConfig } from "@/types";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
@@ -51,7 +50,7 @@ export default function App() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900">
+    <div className="flex h-screen bg-slate-900 text-slate-100">
       <Sidebar
         conversations={conversations}
         currentId={currentConversation?.id ?? null}
@@ -63,10 +62,10 @@ export default function App() {
       />
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center border-b bg-white px-4 py-3">
+        <header className="flex items-center border-b border-slate-700 bg-slate-800 px-4 py-3">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="mr-3 rounded p-1 hover:bg-gray-100 md:hidden"
+            className="mr-3 rounded p-1 hover:bg-slate-700 md:hidden"
             aria-label="Open menu"
           >
             <Menu size={20} />
@@ -75,7 +74,7 @@ export default function App() {
           <div className="ml-auto">
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-slate-400 hover:text-slate-200"
             >
               {config?.apiKey ? "Settings" : "Set API key"}
             </button>
@@ -101,7 +100,7 @@ export default function App() {
       <SettingsModal
         isOpen={isSettingsOpen || !config?.apiKey}
         config={config ?? DEFAULT_CONFIG}
-        onSave={(newConfig: ApiConfig) => {
+        onSave={(newConfig) => {
           saveConfig(newConfig);
           setIsSettingsOpen(false);
           setSelectedModel(newConfig.model);

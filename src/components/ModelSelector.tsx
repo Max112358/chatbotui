@@ -108,13 +108,13 @@ export function ModelSelector({
             onKeyDown={handleKeyDown}
             disabled={disabled}
             placeholder="Search models..."
-            className="w-64 rounded border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm focus:border-blue-500 focus:outline-none disabled:bg-gray-100"
+            className="w-64 rounded border border-slate-600 bg-slate-800 py-2 pl-3 pr-8 text-sm text-slate-100 placeholder-slate-400 focus:border-blue-500 focus:outline-none disabled:opacity-50"
           />
           <button
             type="button"
             onClick={() => setIsOpen((prev) => !prev)}
             disabled={disabled}
-            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+            className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 disabled:opacity-50"
           >
             <ChevronDown size={16} />
           </button>
@@ -124,20 +124,20 @@ export function ModelSelector({
           onClick={() => refetch()}
           disabled={isLoading || disabled || !config?.apiKey}
           title="Refresh models"
-          className="rounded p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
+          className="rounded p-2 text-slate-400 hover:bg-slate-700 hover:text-slate-200 disabled:opacity-50"
         >
           <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 max-h-60 w-64 overflow-auto rounded border border-gray-200 bg-white py-1 shadow-lg">
+        <div className="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-64 overflow-auto rounded border border-slate-600 bg-slate-800 py-1 shadow-xl">
           {isLoading && filteredModels.length === 0 && (
-            <div className="px-3 py-2 text-sm text-gray-500">Loading...</div>
+            <div className="px-3 py-2 text-sm text-slate-400">Loading...</div>
           )}
 
           {!isLoading && filteredModels.length === 0 && (
-            <div className="px-3 py-2 text-sm text-gray-500">
+            <div className="px-3 py-2 text-sm text-slate-400">
               No models found
             </div>
           )}
@@ -147,9 +147,9 @@ export function ModelSelector({
               key={model}
               type="button"
               onClick={() => handleSelect(model)}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                index === highlightedIndex ? "bg-blue-50" : ""
-              } ${model === value ? "font-medium text-blue-600" : ""}`}
+              className={`w-full px-3 py-2 text-left text-sm text-slate-100 hover:bg-slate-700 ${
+                index === highlightedIndex ? "bg-slate-700" : ""
+              } ${model === value ? "font-medium text-blue-400" : ""}`}
             >
               {model}
             </button>
