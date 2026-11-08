@@ -24,7 +24,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         </div>
         <div className="min-w-0 space-y-2">
-          <div className="whitespace-pre-wrap text-sm">
+          <div className="text-sm">
             <MarkdownRenderer content={message.content} />
           </div>
           {message.attachments.length > 0 && (
