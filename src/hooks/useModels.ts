@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { ApiConfig } from "@/types";
-import { fetchModels, ModelInfo } from "@/services/apiService";
+import { ModelInfo } from "@/types";
+import { fetchModels } from "@/services/apiService";
 
 const STORAGE_KEY = "nanogpt_models_cache";
 
@@ -10,7 +10,7 @@ interface CachedModels {
   baseUrl: string;
 }
 
-export function useModels(config: ApiConfig | null) {
+export function useModels(config: { apiKey: string; baseUrl: string } | null) {
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

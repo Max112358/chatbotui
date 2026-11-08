@@ -129,6 +129,7 @@ export async function fetchModels(
   apiKey: string,
 ): Promise<ModelInfo[]> {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+
   const response = await fetch(`${normalizedBaseUrl}/models`, {
     headers: {
       Authorization: `Bearer ${apiKey}`,
