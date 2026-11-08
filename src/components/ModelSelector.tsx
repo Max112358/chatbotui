@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { ApiConfig } from "@/types";
+import { ApiConfig, ModelInfo } from "@/types";
 import { useModels } from "@/hooks/useModels";
 import { AVAILABLE_MODELS } from "@/constants";
 import { ChevronDown, RefreshCw } from "lucide-react";
@@ -9,6 +9,7 @@ interface ModelSelectorProps {
   onChange: (value: string) => void;
   config: ApiConfig | null;
   disabled?: boolean;
+  modelInfos?: ModelInfo[];
 }
 
 export function ModelSelector({
@@ -16,8 +17,11 @@ export function ModelSelector({
   onChange,
   config,
   disabled,
+  modelInfos: propModelInfos,
 }: ModelSelectorProps) {
   const { models: fetchedModels, isLoading, refetch } = useModels(config);
+  const modelInfos = propModelInfos ?? fetchedModels;
+
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -25,10 +29,11 @@ export function ModelSelector({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const allModels = useMemo(() => {
-    const combined = [...AVAILABLE_MODELS, ...fetchedModels];
+    const ids = modelInfos.map((m) => m.id);
+    const combined = [...AVAILABLE_MODELS, ...ids];
     const unique = Array.from(new Set(combined));
     return unique.sort();
-  }, [fetchedModels]);
+  }, [modelInfos]);
 
   const filteredModels = useMemo(() => {
     if (!search.trim()) return allModels;

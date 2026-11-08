@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Menu } from "lucide-react";
 import { useApiConfig } from "@/hooks/useApiConfig";
 import { useConversations } from "@/hooks/useConversations";
 import { useChat } from "@/hooks/useChat";
+import { useModels } from "@/hooks/useModels";
 import { DEFAULT_CONFIG } from "@/constants";
 import { SettingsModal } from "./SettingsModal";
 import { Sidebar } from "./Sidebar";
@@ -11,7 +12,7 @@ import { MessageInput } from "./MessageInput";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { models: fetchedModels } = useModels(config);
 
   const {
     conversations,
@@ -36,8 +37,15 @@ export default function App() {
   });
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const [selectedModel, setSelectedModel] = useState(
     config?.model ?? DEFAULT_CONFIG.model,
+  );
+
+  const selectedModelInfo = useMemo(
+    () => fetchedModels.find((m) => m.id === selectedModel),
+    [fetchedModels, selectedModel],
   );
 
   const isReady = configLoaded && conversationsLoaded;
@@ -95,6 +103,9 @@ export default function App() {
           model={selectedModel}
           onModelChange={setSelectedModel}
           config={config}
+          currentConversation={currentConversation}
+          selectedModelInfo={selectedModelInfo}
+          modelInfos={fetchedModels}
           disabled={!config?.apiKey}
         />
       </div>

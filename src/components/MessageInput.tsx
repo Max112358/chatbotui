@@ -1,7 +1,8 @@
-import { useState, useRef, useCallback } from "react";
-import { Attachment, ApiConfig } from "@/types";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { Attachment, ApiConfig, Conversation, ModelInfo } from "@/types";
 import { Send, Square, Paperclip } from "lucide-react";
 import { processFiles } from "@/services/fileService";
+import { estimateTokens } from "@/utils/tokens";
 import { ModelSelector } from "./ModelSelector";
 
 interface MessageInputProps {
@@ -15,6 +16,9 @@ interface MessageInputProps {
   model: string;
   onModelChange: (model: string) => void;
   config: ApiConfig | null;
+  currentConversation: Conversation | null;
+  selectedModelInfo?: ModelInfo;
+  modelInfos?: ModelInfo[];
   disabled?: boolean;
 }
 
@@ -25,12 +29,16 @@ export function MessageInput({
   model,
   onModelChange,
   config,
+  currentConversation,
+  selectedModelInfo,
+  modelInfos,
   disabled,
 }: MessageInputProps) {
   const [content, setContent] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -66,6 +74,38 @@ export function MessageInput({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
+  // Auto-resize textarea, capped at 50vh
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    const maxHeight = window.innerHeight * 0.5;
+
+    // Reset height to auto so scrollHeight is accurate
+    el.style.height = "auto";
+    el.style.maxHeight = `${maxHeight}px`;
+
+    const newHeight = Math.min(el.scrollHeight, maxHeight);
+    el.style.height = `${newHeight}px`;
+  }, [content]);
+
+  const contextUsage = useMemo(() => {
+    if (!selectedModelInfo?.context_length || !currentConversation) return null;
+
+    let used = 0;
+    for (const message of currentConversation.messages) {
+      used += estimateTokens(message.content);
+      for (const attachment of message.attachments) {
+        used += estimateTokens(attachment.content);
+      }
+    }
+
+    const total = selectedModelInfo.context_length;
+    const percentage = Math.min(100, Math.round((used / total) * 100));
+
+    return { used, total, percentage };
+  }, [selectedModelInfo, currentConversation]);
+
   return (
     <div className="border-t border-border-color bg-panel p-4">
       <div className="mx-auto max-w-3xl">
@@ -98,6 +138,7 @@ export function MessageInput({
             onChange={onModelChange}
             config={config}
             disabled={isStreaming}
+            modelInfos={modelInfos}
           />
 
           <button
@@ -119,6 +160,7 @@ export function MessageInput({
           />
 
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={(e) => {
@@ -132,8 +174,28 @@ export function MessageInput({
             }
             disabled={disabled || isStreaming}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded border border-border-color bg-input px-3 py-2 text-sm text-main placeholder-muted ring-1 ring-transparent focus:border-accent-orange focus:outline-none focus:ring-accent-orange-hard disabled:opacity-50"
+            className="max-h-[50vh] min-h-[40px] flex-1 resize-none overflow-y-auto rounded border border-border-color bg-input px-3 py-2 text-sm text-main placeholder-muted ring-1 ring-transparent focus:border-accent-orange focus:outline-none focus:ring-accent-orange-hard disabled:opacity-50"
           />
+
+          {contextUsage && (
+            <div
+              className="flex flex-col items-end justify-end px-1"
+              title={`Estimated tokens: ${contextUsage.used.toLocaleString()} / ${contextUsage.total.toLocaleString()}`}
+            >
+              <span
+                className={`text-xs font-medium ${
+                  contextUsage.percentage > 80
+                    ? "text-danger-text"
+                    : contextUsage.percentage > 50
+                      ? "text-accent-orange"
+                      : "text-muted"
+                }`}
+              >
+                {contextUsage.percentage}%
+              </span>
+              <span className="text-[10px] text-muted">context</span>
+            </div>
+          )}
 
           {isStreaming ? (
             <button

@@ -6,6 +6,12 @@ export interface ApiConfig {
   model: string;
 }
 
+export interface ModelInfo {
+  id: string;
+  object: string;
+  context_length?: number;
+}
+
 export interface Attachment {
   id: string;
   name: string;

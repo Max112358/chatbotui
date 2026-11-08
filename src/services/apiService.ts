@@ -114,17 +114,20 @@ function formatMessageContent(message: Message): ApiContent {
   return content;
 }
 
+export interface ModelInfo {
+  id: string;
+  object: string;
+  context_length?: number;
+}
+
 export interface ModelListResponse {
-  data: Array<{
-    id: string;
-    object: string;
-  }>;
+  data: ModelInfo[];
 }
 
 export async function fetchModels(
   baseUrl: string,
   apiKey: string,
-): Promise<string[]> {
+): Promise<ModelInfo[]> {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
   const response = await fetch(`${normalizedBaseUrl}/models`, {
     headers: {
@@ -138,5 +141,5 @@ export async function fetchModels(
   }
 
   const data = (await response.json()) as ModelListResponse;
-  return data.data.map((model) => model.id).sort();
+  return data.data;
 }
