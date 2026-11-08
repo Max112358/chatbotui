@@ -140,13 +140,20 @@ export function ModelSelector({
         </button>
       </div>
 
+      <div className="mt-1 flex items-center gap-2 text-xs text-muted">
+        <span>{fetchedModels.length} API models</span>
+        {isLoading && <span>• loading</span>}
+        {error && (
+          <>
+            <span className="text-danger-text">• error</span>
+            <AlertCircle size={12} className="text-danger-text" />
+          </>
+        )}
+      </div>
+
       {error && (
-        <div
-          className="mt-1 flex items-center gap-1 text-xs text-danger-text"
-          title={error}
-        >
-          <AlertCircle size={12} />
-          <span className="truncate">Failed to load API models</span>
+        <div className="mt-1 max-w-64 rounded bg-danger-bg p-2 text-xs text-danger-text">
+          {error}
         </div>
       )}
 
