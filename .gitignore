@@ -10,6 +10,8 @@ node_modules
 dist
 dist-ssr
 *.local
+public/pdf.worker.min.js
+public/pdf.worker.min.mjs
 
 .vscode/*
 !.vscode/extensions.json

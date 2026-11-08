@@ -2,9 +2,7 @@ import { Attachment } from "@/types";
 import { generateId } from "@/utils/id";
 import * as pdfjsLib from "pdfjs-dist";
 
-import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.js?url";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `${import.meta.env.BASE_URL}pdf.worker.min.mjs`;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
