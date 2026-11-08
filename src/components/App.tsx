@@ -11,6 +11,7 @@ import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
 import { ModelDebugInfo } from "./ModelDebugInfo";
 import { ContextDebugInfo } from "./ContextDebugInfo";
+import { ApiDump } from "./ApiDump";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
@@ -147,6 +148,7 @@ export default function App() {
       />
       <ModelDebugInfo config={config} />
       <ContextDebugInfo selectedModelInfo={selectedModelInfo} config={config} />
+      <ApiDump config={config} model={selectedModel} />
     </div>
   );
 }
