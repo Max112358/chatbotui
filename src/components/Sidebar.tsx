@@ -72,8 +72,11 @@ export function Sidebar({
             ))}
           </div>
 
-          <div className="border-t border-border-color p-4 text-xs text-muted">
-            History stored locally only.
+          <div className="border-t border-border-color p-4">
+            <div className="font-semibold text-accent-orange">NanoGPT Chat</div>
+            <div className="text-xs text-muted">
+              History stored locally only.
+            </div>
           </div>
         </div>
       </aside>

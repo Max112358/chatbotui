@@ -9,9 +9,6 @@ import { SettingsModal } from "./SettingsModal";
 import { Sidebar } from "./Sidebar";
 import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
-//import { ModelDebugInfo } from "./ModelDebugInfo";
-//import { ContextDebugInfo } from "./ContextDebugInfo";
-//import { ApiDump } from "./ApiDump";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
@@ -51,7 +48,6 @@ export default function App() {
     [fetchedModels, selectedModel],
   );
 
-  // Sync selected model with the current conversation
   useEffect(() => {
     if (currentConversation) {
       setSelectedModel(currentConversation.model);
@@ -60,7 +56,6 @@ export default function App() {
     }
   }, [currentConversation, config]);
 
-  // Update the conversation's model when the user changes it
   const handleModelChange = useCallback(
     (model: string) => {
       setSelectedModel(model);
@@ -86,6 +81,14 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-body text-main">
+      <button
+        onClick={() => setIsSidebarOpen(true)}
+        className="fixed left-4 top-4 z-50 rounded bg-card p-2 text-muted shadow md:hidden"
+        aria-label="Open menu"
+      >
+        <Menu size={20} />
+      </button>
+
       <Sidebar
         conversations={conversations}
         currentId={currentConversation?.id ?? null}
@@ -97,27 +100,6 @@ export default function App() {
       />
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center border-b border-border-color bg-card px-4 py-3">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="mr-3 rounded p-1 hover:bg-panel md:hidden"
-            aria-label="Open menu"
-          >
-            <Menu size={20} />
-          </button>
-          <h1 className="text-lg font-semibold text-accent-orange">
-            NanoGPT Chat
-          </h1>
-          <div className="ml-auto">
-            <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="rounded bg-button-bg px-3 py-1.5 text-sm text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover"
-            >
-              {config?.apiKey ? "Settings" : "Set API key"}
-            </button>
-          </div>
-        </header>
-
         <ChatWindow
           conversation={currentConversation}
           isStreaming={isStreaming}
@@ -136,6 +118,13 @@ export default function App() {
           disabled={!config?.apiKey}
         />
       </div>
+
+      <button
+        onClick={() => setIsSettingsOpen(true)}
+        className="fixed bottom-4 right-4 z-50 rounded bg-button-bg px-4 py-2 text-sm text-button-text ring-1 ring-button-border shadow transition-colors hover:bg-button-bg-hover"
+      >
+        Settings
+      </button>
 
       <SettingsModal
         isOpen={isSettingsOpen || !config?.apiKey}
