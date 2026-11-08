@@ -11,11 +11,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   return (
     <div className={`flex gap-4 ${isUser ? "justify-end" : "justify-start"}`}>
-      <div
-        className={`flex max-w-[85%] gap-3 rounded-lg px-4 py-3 ${
-          isUser ? "bg-accent-orange text-dark" : "bg-card text-main shadow"
-        }`}
-      >
+      <div className="flex max-w-[85%] gap-3 rounded-lg bg-card px-4 py-3 text-main shadow">
         <div className="mt-1 shrink-0">
           {isUser ? (
             <User size={18} />
@@ -32,11 +28,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               {message.attachments.map((attachment) => (
                 <div
                   key={attachment.id}
-                  className={`rounded border p-2 text-xs ${
-                    isUser
-                      ? "border-accent-orange-hard bg-accent-orange-soft"
-                      : "border-border-color bg-input"
-                  }`}
+                  className="rounded border border-border-color bg-input p-2 text-xs"
                 >
                   {attachment.type === "image" ? (
                     <img
