@@ -11,6 +11,7 @@
     "copy:pdf-worker": "cpy node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/"
   },
   "dependencies": {
+    "gpt-tokenizer": "^4.1.0",
     "lucide-react": "^0.344.0",
     "pdfjs-dist": "^4.0.379",
     "react": "^18.2.0",

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { ApiConfig, ModelInfo } from "@/types";
 import { useModels } from "@/hooks/useModels";
 import { AVAILABLE_MODELS } from "@/constants";
-import { ChevronDown, RefreshCw } from "lucide-react";
+import { ChevronDown, RefreshCw, AlertCircle } from "lucide-react";
 
 interface ModelSelectorProps {
   value: string;
@@ -19,7 +19,12 @@ export function ModelSelector({
   disabled,
   modelInfos: propModelInfos,
 }: ModelSelectorProps) {
-  const { models: fetchedModels, isLoading, refetch } = useModels(config);
+  const {
+    models: fetchedModels,
+    isLoading,
+    error,
+    refetch,
+  } = useModels(config);
   const modelInfos = propModelInfos ?? fetchedModels;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -134,6 +139,16 @@ export function ModelSelector({
           <RefreshCw size={16} className={isLoading ? "animate-spin" : ""} />
         </button>
       </div>
+
+      {error && (
+        <div
+          className="mt-1 flex items-center gap-1 text-xs text-danger-text"
+          title={error}
+        >
+          <AlertCircle size={12} />
+          <span className="truncate">Failed to load API models</span>
+        </div>
+      )}
 
       {isOpen && (
         <div className="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-64 overflow-auto rounded border border-border-color bg-panel py-1 shadow-xl">

@@ -1,4 +1,6 @@
+import { encode } from "gpt-tokenizer";
+
 export function estimateTokens(text: string): number {
-  // Very rough approximation: ~4 characters per token
-  return Math.max(0, Math.ceil(text.length / 4));
+  if (!text) return 0;
+  return encode(text).length;
 }

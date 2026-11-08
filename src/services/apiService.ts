@@ -1,5 +1,15 @@
 import { Message } from "@/types";
 
+export interface ModelInfo {
+  id: string;
+  object: string;
+  context_length?: number;
+}
+
+export interface ModelListResponse {
+  data: ModelInfo[];
+}
+
 interface StreamChunk {
   choices: Array<{
     delta: {
@@ -14,6 +24,35 @@ type ApiContent =
       | { type: "text"; text: string }
       | { type: "image_url"; image_url: { url: string } }
     >;
+
+export async function fetchModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<ModelInfo[]> {
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+  const url = `${normalizedBaseUrl}/models`;
+
+  console.log("[fetchModels] Fetching:", url);
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "Unknown error");
+    console.error("[fetchModels] Error response:", response.status, errorText);
+    throw new Error(`API error ${response.status}: ${errorText}`);
+  }
+
+  const data = (await response.json()) as ModelListResponse;
+  console.log("[fetchModels] Response data:", data);
+
+  return data.data;
+}
 
 export async function streamChatCompletion(
   baseUrl: string,
@@ -112,35 +151,4 @@ function formatMessageContent(message: Message): ApiContent {
   }
 
   return content;
-}
-
-export interface ModelInfo {
-  id: string;
-  object: string;
-  context_length?: number;
-}
-
-export interface ModelListResponse {
-  data: ModelInfo[];
-}
-
-export async function fetchModels(
-  baseUrl: string,
-  apiKey: string,
-): Promise<ModelInfo[]> {
-  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
-
-  const response = await fetch(`${normalizedBaseUrl}/models`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "Unknown error");
-    throw new Error(`API error ${response.status}: ${errorText}`);
-  }
-
-  const data = (await response.json()) as ModelListResponse;
-  return data.data;
 }

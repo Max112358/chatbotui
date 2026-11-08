@@ -19,6 +19,7 @@ export function useModels(config: { apiKey: string; baseUrl: string } | null) {
     async (force = false) => {
       if (!config?.apiKey || !config?.baseUrl) {
         setModels([]);
+        setError(null);
         return;
       }
 
@@ -32,6 +33,7 @@ export function useModels(config: { apiKey: string; baseUrl: string } | null) {
               Date.now() - parsed.fetchedAt < 24 * 60 * 60 * 1000
             ) {
               setModels(parsed.models);
+              setError(null);
               return;
             }
           } catch {
@@ -46,6 +48,7 @@ export function useModels(config: { apiKey: string; baseUrl: string } | null) {
       try {
         const fetched = await fetchModels(config.baseUrl, config.apiKey);
         setModels(fetched);
+        setError(null);
 
         try {
           const cache: CachedModels = {
@@ -58,7 +61,10 @@ export function useModels(config: { apiKey: string; baseUrl: string } | null) {
           // ignore storage errors
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch models");
+        const message =
+          err instanceof Error ? err.message : "Failed to fetch models";
+        console.error("[useModels]", message);
+        setError(message);
       } finally {
         setIsLoading(false);
       }
