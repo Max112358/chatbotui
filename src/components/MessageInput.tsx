@@ -3,7 +3,6 @@ import { Attachment, ApiConfig, Conversation, ModelInfo } from "@/types";
 import { Send, Square, Paperclip } from "lucide-react";
 import { processFiles } from "@/services/fileService";
 import { estimateTokens } from "@/utils/tokens";
-import { MODEL_CONTEXT_LENGTHS } from "@/constants";
 import { ModelSelector } from "./ModelSelector";
 
 interface MessageInputProps {
@@ -75,7 +74,6 @@ export function MessageInput({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  // Auto-resize textarea, capped at 50vh
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -90,14 +88,12 @@ export function MessageInput({
   }, [content]);
 
   const contextUsage = useMemo(() => {
-    const contextLength =
-      selectedModelInfo?.context_length ?? MODEL_CONTEXT_LENGTHS[model] ?? null;
-
-    if (!contextLength || !currentConversation) return null;
+    if (!currentConversation || !selectedModelInfo?.context_length) {
+      return null;
+    }
 
     let used = 0;
 
-    // Prior conversation messages
     for (const message of currentConversation.messages) {
       used += estimateTokens(message.content);
       for (const attachment of message.attachments) {
@@ -105,17 +101,16 @@ export function MessageInput({
       }
     }
 
-    // Current draft message
     used += estimateTokens(content);
     for (const attachment of attachments) {
       used += estimateTokens(attachment.content);
     }
 
-    const total = contextLength;
+    const total = selectedModelInfo.context_length;
     const percentage = Math.min(100, Math.round((used / total) * 100));
 
     return { used, total, percentage };
-  }, [selectedModelInfo, model, currentConversation, content, attachments]);
+  }, [selectedModelInfo, currentConversation, content, attachments]);
 
   return (
     <div className="border-t border-border-color bg-panel p-4">
@@ -144,7 +139,6 @@ export function MessageInput({
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-          {/* Textarea row - full width */}
           <textarea
             ref={textareaRef}
             value={content}
@@ -163,7 +157,6 @@ export function MessageInput({
             className="max-h-[50vh] min-h-[40px] w-full resize-none overflow-y-auto rounded border border-border-color bg-input px-3 py-2 text-sm text-main placeholder-muted ring-1 ring-transparent focus:border-accent-orange focus:outline-none focus:ring-accent-orange-hard disabled:opacity-50"
           />
 
-          {/* Controls row */}
           <div className="flex items-center gap-2">
             <ModelSelector
               value={model}
@@ -214,7 +207,7 @@ export function MessageInput({
             ) : (
               <div
                 className="flex flex-col items-end px-2"
-                title="Context length unknown"
+                title="No context_length from API for this model"
               >
                 <span className="text-xs font-medium text-muted">--</span>
                 <span className="text-[10px] text-muted">context</span>

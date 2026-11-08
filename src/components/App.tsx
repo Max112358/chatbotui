@@ -10,6 +10,7 @@ import { Sidebar } from "./Sidebar";
 import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
 import { ModelDebugInfo } from "./ModelDebugInfo";
+import { ContextDebugInfo } from "./ContextDebugInfo";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
@@ -145,6 +146,7 @@ export default function App() {
         }}
       />
       <ModelDebugInfo config={config} />
+      <ContextDebugInfo selectedModelInfo={selectedModelInfo} config={config} />
     </div>
   );
 }
