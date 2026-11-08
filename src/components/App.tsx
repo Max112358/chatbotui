@@ -9,6 +9,7 @@ import { SettingsModal } from "./SettingsModal";
 import { Sidebar } from "./Sidebar";
 import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
+import { ModelDebugInfo } from "./ModelDebugInfo";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
@@ -103,7 +104,7 @@ export default function App() {
             <Menu size={20} />
           </button>
           <h1 className="text-lg font-semibold text-accent-orange">
-            NanoGPT Chat TEST
+            NanoGPT Chat
           </h1>
           <div className="ml-auto">
             <button
@@ -143,6 +144,7 @@ export default function App() {
           setSelectedModel(newConfig.model);
         }}
       />
+      <ModelDebugInfo config={config} />
     </div>
   );
 }
