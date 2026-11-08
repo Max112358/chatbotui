@@ -103,7 +103,7 @@ export default function App() {
             <Menu size={20} />
           </button>
           <h1 className="text-lg font-semibold text-accent-orange">
-            NanoGPT Chat
+            NanoGPT Chat TEST
           </h1>
           <div className="ml-auto">
             <button
