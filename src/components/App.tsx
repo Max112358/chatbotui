@@ -9,9 +9,9 @@ import { SettingsModal } from "./SettingsModal";
 import { Sidebar } from "./Sidebar";
 import { ChatWindow } from "./ChatWindow";
 import { MessageInput } from "./MessageInput";
-import { ModelDebugInfo } from "./ModelDebugInfo";
-import { ContextDebugInfo } from "./ContextDebugInfo";
-import { ApiDump } from "./ApiDump";
+//import { ModelDebugInfo } from "./ModelDebugInfo";
+//import { ContextDebugInfo } from "./ContextDebugInfo";
+//import { ApiDump } from "./ApiDump";
 
 export default function App() {
   const { config, isLoaded: configLoaded, saveConfig } = useApiConfig();
