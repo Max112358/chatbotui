@@ -30,27 +30,18 @@ export async function fetchModels(
   apiKey: string,
 ): Promise<ModelInfo[]> {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
-  const url = `${normalizedBaseUrl}/models`;
-
-  console.log("[fetchModels] Fetching:", url);
-
-  const response = await fetch(url, {
-    method: "GET",
+  const response = await fetch(`${normalizedBaseUrl}/models?detailed=true`, {
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
   });
 
   if (!response.ok) {
     const errorText = await response.text().catch(() => "Unknown error");
-    console.error("[fetchModels] Error response:", response.status, errorText);
     throw new Error(`API error ${response.status}: ${errorText}`);
   }
 
   const data = (await response.json()) as ModelListResponse;
-  console.log("[fetchModels] Response data:", data);
-
   return data.data;
 }
 
