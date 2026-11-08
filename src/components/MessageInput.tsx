@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Attachment } from "@/types";
+import { Attachment, ApiConfig } from "@/types";
 import { Send, Square, Paperclip } from "lucide-react";
 import { processFiles } from "@/services/fileService";
 import { ModelSelector } from "./ModelSelector";
@@ -14,6 +14,7 @@ interface MessageInputProps {
   isStreaming: boolean;
   model: string;
   onModelChange: (model: string) => void;
+  config: ApiConfig | null;
   disabled?: boolean;
 }
 
@@ -23,6 +24,7 @@ export function MessageInput({
   isStreaming,
   model,
   onModelChange,
+  config,
   disabled,
 }: MessageInputProps) {
   const [content, setContent] = useState("");
@@ -94,6 +96,7 @@ export function MessageInput({
           <ModelSelector
             value={model}
             onChange={onModelChange}
+            config={config}
             disabled={isStreaming}
           />
 
@@ -121,7 +124,7 @@ export function MessageInput({
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                handleSubmit(e);
+                void handleSubmit(e);
               }
             }}
             placeholder={

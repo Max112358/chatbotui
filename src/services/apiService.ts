@@ -113,3 +113,30 @@ function formatMessageContent(message: Message): ApiContent {
 
   return content;
 }
+
+export interface ModelListResponse {
+  data: Array<{
+    id: string;
+    object: string;
+  }>;
+}
+
+export async function fetchModels(
+  baseUrl: string,
+  apiKey: string,
+): Promise<string[]> {
+  const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
+  const response = await fetch(`${normalizedBaseUrl}/models`, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "Unknown error");
+    throw new Error(`API error ${response.status}: ${errorText}`);
+  }
+
+  const data = (await response.json()) as ModelListResponse;
+  return data.data.map((model) => model.id).sort();
+}

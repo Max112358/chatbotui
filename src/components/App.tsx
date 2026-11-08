@@ -93,6 +93,7 @@ export default function App() {
           isStreaming={isStreaming}
           model={selectedModel}
           onModelChange={setSelectedModel}
+          config={config}
           disabled={!config?.apiKey}
         />
       </div>
