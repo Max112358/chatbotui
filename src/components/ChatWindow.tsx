@@ -1,0 +1,39 @@
+import { useEffect, useRef } from "react";
+import { Conversation } from "@/types";
+import { Bot } from "lucide-react";
+import { MessageBubble } from "./MessageBubble";
+
+interface ChatWindowProps {
+  conversation: Conversation | null;
+  isStreaming: boolean;
+}
+
+export function ChatWindow({ conversation, isStreaming }: ChatWindowProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [conversation?.messages, isStreaming]);
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4">
+      {!conversation || conversation.messages.length === 0 ? (
+        <div className="flex h-full flex-col items-center justify-center text-gray-400">
+          <Bot size={48} className="mb-4" />
+          <p className="text-lg">Start a new conversation</p>
+          <p className="text-sm">Enter your NanoGPT API key to begin.</p>
+        </div>
+      ) : (
+        <div className="mx-auto max-w-3xl space-y-6">
+          {conversation.messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
+          {isStreaming && (
+            <div className="text-sm text-gray-400">NanoGPT is typing…</div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+      )}
+    </div>
+  );
+}
