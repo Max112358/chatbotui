@@ -16,7 +16,7 @@ export function ChatWindow({ conversation, isStreaming }: ChatWindowProps) {
   }, [conversation?.messages, isStreaming]);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-body p-4">
+    <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
       {!conversation || conversation.messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center text-muted">
           <Bot size={48} className="mb-4 text-accent-orange" />
@@ -24,7 +24,7 @@ export function ChatWindow({ conversation, isStreaming }: ChatWindowProps) {
           <p className="text-sm">Enter your NanoGPT API key to begin.</p>
         </div>
       ) : (
-        <div className="mx-auto max-w-3xl space-y-6">
+        <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
           {conversation.messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))}

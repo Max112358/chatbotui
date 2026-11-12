@@ -32,7 +32,7 @@ export function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform border-r border-border-color bg-panel transition-transform md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[80vw] max-w-[16rem] transform border-r border-border-color bg-panel transition-transform md:static md:w-64 md:max-w-none md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

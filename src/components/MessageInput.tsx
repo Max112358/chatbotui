@@ -113,8 +113,8 @@ export function MessageInput({
   }, [selectedModelInfo, currentConversation, content, attachments]);
 
   return (
-    <div className="border-t border-border-color bg-panel p-4">
-      <div className="mx-auto max-w-3xl">
+    <div className="min-w-0 border-t border-border-color bg-panel p-4">
+      <div className="mx-auto w-full max-w-3xl">
         {attachments.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {attachments.map((attachment) => (
@@ -122,7 +122,7 @@ export function MessageInput({
                 key={attachment.id}
                 className="flex items-center gap-2 rounded bg-card px-2 py-1 text-xs text-main"
               >
-                <span className="max-w-[150px] truncate">
+                <span className="max-w-[120px] truncate sm:max-w-[150px]">
                   {attachment.name}
                 </span>
                 <button
@@ -157,7 +157,7 @@ export function MessageInput({
             className="max-h-[50vh] min-h-[40px] w-full resize-none overflow-y-auto rounded border border-border-color bg-input px-3 py-2 text-sm text-main placeholder-muted ring-1 ring-transparent focus:border-accent-orange focus:outline-none focus:ring-accent-orange-hard disabled:opacity-50"
           />
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <ModelSelector
               value={model}
               onChange={onModelChange}
@@ -170,7 +170,7 @@ export function MessageInput({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || isUploading || isStreaming}
-              className="rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
+              className="shrink-0 rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
               aria-label="Attach file"
             >
               <Paperclip size={20} />
@@ -218,7 +218,7 @@ export function MessageInput({
               <button
                 type="button"
                 onClick={onStop}
-                className="rounded bg-danger-bg p-2 text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
+                className="shrink-0 rounded bg-danger-bg p-2 text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
                 aria-label="Stop generation"
               >
                 <Square size={20} fill="currentColor" />
@@ -231,7 +231,7 @@ export function MessageInput({
                   isUploading ||
                   (!content.trim() && attachments.length === 0)
                 }
-                className="rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
+                className="shrink-0 rounded bg-button-bg p-2 text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover disabled:opacity-50"
                 aria-label="Send message"
               >
                 <Send size={20} />

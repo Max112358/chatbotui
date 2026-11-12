@@ -54,7 +54,7 @@ export function ApiDump({ config, model }: ApiDumpProps) {
   }, [config, model]);
 
   return (
-    <div className="fixed left-4 bottom-4 z-50 max-h-96 max-w-xl overflow-auto rounded border border-border-color bg-panel p-3 text-xs text-main shadow-xl">
+    <div className="fixed left-2 right-2 bottom-2 z-50 max-h-96 overflow-auto rounded border border-border-color bg-panel p-3 text-xs text-main shadow-xl sm:left-4 sm:right-auto sm:bottom-4 sm:max-w-xl">
       <div className="mb-2 font-bold text-accent-orange">Full /models dump</div>
       <pre className="mb-4 whitespace-pre-wrap font-mono text-muted">
         {modelsDump}

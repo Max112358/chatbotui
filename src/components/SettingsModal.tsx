@@ -28,7 +28,7 @@ export function SettingsModal({ isOpen, config, onSave }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-lg border border-border-color bg-panel p-6 shadow-xl">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg border border-border-color bg-panel p-6 shadow-xl">
         <h2 className="mb-2 text-xl font-semibold text-accent-orange">
           API Settings
         </h2>

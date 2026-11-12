@@ -80,7 +80,7 @@ export default function App() {
   if (!isReady) return null;
 
   return (
-    <div className="flex h-screen bg-body text-main">
+    <div className="flex h-[100dvh] w-full max-w-full flex-row overflow-hidden bg-body text-main">
       <button
         onClick={() => setIsSidebarOpen(true)}
         className="fixed left-4 top-4 z-50 rounded bg-card p-2 text-muted shadow md:hidden"
@@ -99,7 +99,7 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <ChatWindow
           conversation={currentConversation}
           isStreaming={isStreaming}
