@@ -1,5 +1,5 @@
 import { Conversation } from "@/types";
-import { Plus, X } from "lucide-react";
+import { Plus, Settings, X } from "lucide-react";
 import { ConversationItem } from "./ConversationItem";
 
 interface SidebarProps {
@@ -8,6 +8,7 @@ interface SidebarProps {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onNewChat: () => void;
+  onOpenSettings: () => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -18,6 +19,7 @@ export function Sidebar({
   onSelect,
   onDelete,
   onNewChat,
+  onOpenSettings,
   isOpen,
   onClose,
 }: SidebarProps) {
@@ -73,6 +75,13 @@ export function Sidebar({
           </div>
 
           <div className="border-t border-border-color p-4">
+            <button
+              onClick={onOpenSettings}
+              className="mb-3 flex w-full items-center justify-center gap-2 rounded bg-button-bg py-2 text-sm font-bold text-button-text ring-1 ring-button-border transition-colors hover:bg-button-bg-hover"
+            >
+              <Settings size={16} />
+              Settings
+            </button>
             <div className="font-semibold text-accent-orange">NanoGPT Chat</div>
             <div className="text-xs text-muted">
               History stored locally only.
