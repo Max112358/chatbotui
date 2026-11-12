@@ -10,10 +10,17 @@ interface ChatWindowProps {
 
 export function ChatWindow({ conversation, isStreaming }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const messageCountRef = useRef<number>(0);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [conversation?.messages, isStreaming]);
+    const newCount = conversation?.messages.length ?? 0;
+
+    if (newCount > messageCountRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    messageCountRef.current = newCount;
+  }, [conversation?.messages]);
 
   return (
     <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
