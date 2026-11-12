@@ -12,10 +12,20 @@ export interface ModelListResponse {
 
 interface StreamChunk {
   choices: Array<{
-    delta: {
+    delta?: {
       content?: string;
     };
   }>;
+}
+
+interface NonStreamingChoice {
+  message?: {
+    content?: string;
+  };
+}
+
+interface NonStreamingResponse {
+  choices?: NonStreamingChoice[];
 }
 
 type ApiContent =
@@ -51,7 +61,7 @@ export async function streamChatCompletion(
   apiKey: string,
   model: string,
   signal: AbortSignal,
-  onChunk: (chunk: string) => void,
+  onChunk: (chunk: string) => void | Promise<void>,
 ): Promise<void> {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
@@ -77,6 +87,21 @@ export async function streamChatCompletion(
     throw new Error(`API error ${response.status}: ${errorText}`);
   }
 
+  // Fallback for endpoints that ignore stream: true
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    try {
+      const json = (await response.clone().json()) as NonStreamingResponse;
+      const full = json.choices?.[0]?.message?.content ?? "";
+      if (full) {
+        await onChunk(full);
+        return;
+      }
+    } catch {
+      // Not JSON, continue to streaming path
+    }
+  }
+
   const reader = response.body?.getReader();
   if (!reader) {
     throw new Error("Response body is not readable");
@@ -85,29 +110,51 @@ export async function streamChatCompletion(
   const decoder = new TextDecoder("utf-8");
   let buffer = "";
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
 
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || !trimmed.startsWith("data: ")) continue;
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith("data: ")) continue;
 
-      const data = trimmed.slice(6);
-      if (data === "[DONE]") return;
+        const data = trimmed.slice(6);
+        if (data === "[DONE]") return;
 
-      try {
-        const parsed = JSON.parse(data) as StreamChunk;
-        const content = parsed.choices[0]?.delta?.content;
-        if (content) onChunk(content);
-      } catch {
-        // Ignore malformed chunks
+        try {
+          const parsed = JSON.parse(data) as StreamChunk;
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (typeof content === "string" && content.length > 0) {
+            await onChunk(content);
+          }
+        } catch {
+          // malformed chunk, ignore
+        }
       }
     }
+
+    // Handle trailing buffer
+    const trimmed = buffer.trim();
+    if (trimmed.startsWith("data: ")) {
+      const data = trimmed.slice(6);
+      if (data === "[DONE]") return;
+      try {
+        const parsed = JSON.parse(data) as StreamChunk;
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (typeof content === "string" && content.length > 0) {
+          await onChunk(content);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  } finally {
+    reader.cancel().catch(() => {});
   }
 }
 

@@ -94,6 +94,8 @@ export function useChat({
       setIsStreaming(true);
       abortRef.current = new AbortController();
 
+      let chunkCount = 0;
+
       try {
         await streamChatCompletion(
           config.baseUrl,
@@ -101,15 +103,41 @@ export function useChat({
           config.apiKey,
           model,
           abortRef.current.signal,
-          (chunk) => {
+          async (chunk) => {
+            chunkCount++;
+
             onUpdateConversation(conversation.id, (c) => {
-              const messages = [...c.messages];
-              const last = messages[messages.length - 1];
-              if (last && last.id === assistantMessage.id) {
-                last.content += chunk;
+              const lastIndex = c.messages.length - 1;
+
+              // Only update the last message if it's the placeholder we created
+              if (
+                lastIndex < 0 ||
+                c.messages[lastIndex].id !== assistantMessage.id
+              ) {
+                return c;
               }
-              return { ...c, messages, updatedAt: Date.now() };
+
+              const messages = [...c.messages];
+              const last = messages[lastIndex];
+
+              messages[lastIndex] = {
+                ...last,
+                content: last.content + chunk,
+              };
+
+              return {
+                ...c,
+                messages,
+                updatedAt: Date.now(),
+              };
             });
+
+            // Yield to the browser every few chunks so the UI can paint
+            if (chunkCount % 8 === 0) {
+              await new Promise<void>((resolve) =>
+                requestAnimationFrame(() => resolve()),
+              );
+            }
           },
         );
       } catch (error) {
@@ -121,12 +149,28 @@ export function useChat({
           error instanceof Error ? error.message : "Unknown error";
 
         onUpdateConversation(conversation.id, (c) => {
-          const messages = [...c.messages];
-          const last = messages[messages.length - 1];
-          if (last && last.id === assistantMessage.id) {
-            last.content = `Error: ${message}`;
+          const lastIndex = c.messages.length - 1;
+
+          if (
+            lastIndex < 0 ||
+            c.messages[lastIndex].id !== assistantMessage.id
+          ) {
+            return c;
           }
-          return { ...c, messages, updatedAt: Date.now() };
+
+          const messages = [...c.messages];
+          const last = messages[lastIndex];
+
+          messages[lastIndex] = {
+            ...last,
+            content: `Error: ${message}`,
+          };
+
+          return {
+            ...c,
+            messages,
+            updatedAt: Date.now(),
+          };
         });
       } finally {
         setIsStreaming(false);
