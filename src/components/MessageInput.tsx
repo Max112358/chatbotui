@@ -44,9 +44,18 @@ export function MessageInput({
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (isStreaming || disabled) return;
-      await onSend(content, attachments, model);
+
+      const text = content.trim();
+      if (!text && attachments.length === 0) return;
+
+      const sentAttachments = attachments;
+      const sentModel = model;
+
+      // Clear the input immediately so it doesn't sit there grayed out
       setContent("");
       setAttachments([]);
+
+      await onSend(text, sentAttachments, sentModel);
     },
     [content, attachments, model, onSend, isStreaming, disabled],
   );
