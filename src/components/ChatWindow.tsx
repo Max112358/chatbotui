@@ -21,7 +21,6 @@ export function ChatWindow({ conversation, isStreaming }: ChatWindowProps) {
         <div className="flex h-full flex-col items-center justify-center text-muted">
           <Bot size={48} className="mb-4 text-accent-orange" />
           <p className="text-lg">Start a new conversation</p>
-          <p className="text-sm">Enter your NanoGPT API key to begin.</p>
         </div>
       ) : (
         <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
