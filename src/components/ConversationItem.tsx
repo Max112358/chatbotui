@@ -1,6 +1,13 @@
 import { useState, useRef } from "react";
 import { Conversation } from "@/types";
-import { MessageSquare, Trash2, Check, X, Pencil } from "lucide-react";
+import {
+  MessageSquare,
+  Trash2,
+  Check,
+  X,
+  Pencil,
+  AlertTriangle,
+} from "lucide-react";
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -18,6 +25,7 @@ export function ConversationItem({
   onRename,
 }: ConversationItemProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const startEditing = (e: React.MouseEvent) => {
@@ -45,6 +53,11 @@ export function ConversationItem({
     } else if (e.key === "Escape") {
       cancel();
     }
+  };
+
+  const confirmDelete = () => {
+    onDelete();
+    setShowDeleteConfirm(false);
   };
 
   if (isEditing) {
@@ -84,40 +97,82 @@ export function ConversationItem({
   }
 
   return (
-    <div
-      className={`group mb-1 flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm ${
-        isActive
-          ? "bg-card text-accent-orange"
-          : "text-muted hover:bg-card hover:text-main"
-      }`}
-      onClick={onSelect}
-    >
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <MessageSquare
-          size={14}
-          className={`shrink-0 ${isActive ? "text-accent-orange" : ""}`}
-        />
-        <span className="truncate">{conversation.title}</span>
+    <>
+      <div
+        className={`group mb-1 flex cursor-pointer items-center justify-between rounded px-3 py-2 text-sm ${
+          isActive
+            ? "bg-card text-accent-orange"
+            : "text-muted hover:bg-card hover:text-main"
+        }`}
+        onClick={onSelect}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <MessageSquare
+            size={14}
+            className={`shrink-0 ${isActive ? "text-accent-orange" : ""}`}
+          />
+          <span className="truncate">{conversation.title}</span>
+        </div>
+        <div className="ml-2 flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={startEditing}
+            className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
+            aria-label="Rename conversation"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowDeleteConfirm(true);
+            }}
+            className="rounded bg-danger-bg p-1.5 text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
+            aria-label="Delete conversation"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
-      <div className="ml-2 flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <button
-          onClick={startEditing}
-          className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
-          aria-label="Rename conversation"
-        >
-          <Pencil size={14} />
-        </button>
-        <button
+
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
           onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
+            if (e.target === e.currentTarget) setShowDeleteConfirm(false);
           }}
-          className="rounded bg-danger-bg p-1.5 text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
-          aria-label="Delete conversation"
         >
-          <Trash2 size={14} />
-        </button>
-      </div>
-    </div>
+          <div className="w-full max-w-sm rounded-lg border border-border-color bg-panel p-5 shadow-xl">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="shrink-0 rounded-full bg-danger-bg p-2 text-danger-text">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-main">
+                  Delete conversation?
+                </h3>
+                <p className="mt-1 text-sm text-muted">
+                  This will permanently remove “{conversation.title}” and all
+                  its messages. This cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded bg-card px-4 py-2 text-sm font-medium text-main ring-1 ring-border-color transition-colors hover:bg-input"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded bg-danger-bg px-4 py-2 text-sm font-medium text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
