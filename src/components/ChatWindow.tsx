@@ -7,6 +7,7 @@ interface ChatWindowProps {
   conversation: Conversation | null;
   isStreaming: boolean;
   onEditMessage?: (messageId: string, content: string) => void;
+  onEditMessageReasoning?: (messageId: string, reasoning: string) => void;
   onDeleteMessage?: (messageId: string) => void;
 }
 
@@ -14,6 +15,7 @@ export function ChatWindow({
   conversation,
   isStreaming,
   onEditMessage,
+  onEditMessageReasoning,
   onDeleteMessage,
 }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,7 @@ export function ChatWindow({
               key={message.id}
               message={message}
               onEdit={onEditMessage}
+              onEditReasoning={onEditMessageReasoning}
               onDelete={onDeleteMessage}
             />
           ))}

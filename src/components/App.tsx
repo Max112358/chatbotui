@@ -85,6 +85,18 @@ export default function App() {
     [currentConversation, updateMessage],
   );
 
+  const handleEditMessageReasoning = useCallback(
+    (messageId: string, reasoning: string) => {
+      if (!currentConversation) return;
+
+      updateMessage(currentConversation.id, messageId, (message) => ({
+        ...message,
+        reasoning,
+      }));
+    },
+    [currentConversation, updateMessage],
+  );
+
   const handleDeleteMessage = useCallback(
     (messageId: string) => {
       if (!currentConversation) return;
@@ -129,6 +141,7 @@ export default function App() {
           conversation={currentConversation}
           isStreaming={isStreaming}
           onEditMessage={handleEditMessage}
+          onEditMessageReasoning={handleEditMessageReasoning}
           onDeleteMessage={handleDeleteMessage}
         />
 

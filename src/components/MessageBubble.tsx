@@ -14,27 +14,14 @@ import {
 } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
-interface MessageBubbleProps {
-  message: Message;
-  onEdit?: (id: string, content: string) => void;
-  onDelete?: (id: string) => void;
-}
-
-export function MessageBubble({
-  message,
-  onEdit,
-  onDelete,
-}: MessageBubbleProps) {
-  const isUser = message.role === "user";
-  const [isEditing, setIsEditing] = useState(false);
-  const [showReasoning, setShowReasoning] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+function useAutoResizeTextarea(
+  ref: React.RefObject<HTMLTextAreaElement>,
+  active: boolean,
+) {
   useEffect(() => {
-    if (!isEditing) return;
+    if (!active) return;
 
-    const el = textareaRef.current;
+    const el = ref.current;
     if (!el) return;
 
     const resize = () => {
@@ -57,7 +44,33 @@ export function MessageBubble({
       el.removeEventListener("input", resize);
       window.removeEventListener("resize", resize);
     };
-  }, [isEditing]);
+  }, [active, ref]);
+}
+
+interface MessageBubbleProps {
+  message: Message;
+  onEdit?: (id: string, content: string) => void;
+  onEditReasoning?: (id: string, reasoning: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export function MessageBubble({
+  message,
+  onEdit,
+  onEditReasoning,
+  onDelete,
+}: MessageBubbleProps) {
+  const isUser = message.role === "user";
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingReasoning, setIsEditingReasoning] = useState(false);
+  const [showReasoning, setShowReasoning] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const reasoningTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useAutoResizeTextarea(textareaRef, isEditing);
+  useAutoResizeTextarea(reasoningTextareaRef, isEditingReasoning);
 
   const submit = () => {
     const value = textareaRef.current?.value ?? "";
@@ -74,12 +87,39 @@ export function MessageBubble({
     setIsEditing(false);
   };
 
+  const submitReasoning = () => {
+    const value = reasoningTextareaRef.current?.value ?? "";
+    const current = message.reasoning ?? "";
+    if (value.trim() !== current.trim()) {
+      onEditReasoning?.(message.id, value.trim());
+    }
+    setIsEditingReasoning(false);
+  };
+
+  const cancelReasoning = () => {
+    if (reasoningTextareaRef.current) {
+      reasoningTextareaRef.current.value = message.reasoning ?? "";
+    }
+    setIsEditingReasoning(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && e.ctrlKey) {
       e.preventDefault();
       submit();
     } else if (e.key === "Escape") {
       cancel();
+    }
+  };
+
+  const handleReasoningKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>,
+  ) => {
+    if (e.key === "Enter" && e.ctrlKey) {
+      e.preventDefault();
+      submitReasoning();
+    } else if (e.key === "Escape") {
+      cancelReasoning();
     }
   };
 
@@ -114,13 +154,15 @@ export function MessageBubble({
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-2 break-words">
-            {!isUser && message.reasoning && (
+            {!isUser && message.reasoning !== undefined && (
               <button
                 onClick={() => setShowReasoning(true)}
                 className="flex w-fit items-center gap-2 rounded-full border border-border-color bg-input px-3 py-1 text-xs text-muted transition-colors hover:border-accent-orange hover:text-accent-orange"
               >
                 <Brain size={12} />
-                <span>Reasoning</span>
+                <span>
+                  {message.reasoning ? "Reasoning" : "Reasoning (empty)"}
+                </span>
               </button>
             )}
             <div className="text-sm">
@@ -216,43 +258,92 @@ export function MessageBubble({
         </div>
       )}
 
-      {showReasoning && message.reasoning && (
+      {showReasoning && message.reasoning !== undefined && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowReasoning(false);
           }}
         >
-          <div className="flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg border border-border-color bg-panel shadow-xl">
-            <div className="flex items-center justify-between border-b border-border-color px-4 py-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-accent-orange">
-                <Brain size={16} />
-                Reasoning
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={handleCopyReasoning}
-                  className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
-                  aria-label="Copy reasoning"
-                  title="Copy reasoning"
-                >
-                  <Copy size={16} />
-                </button>
-                <button
-                  onClick={() => setShowReasoning(false)}
-                  className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
-                  aria-label="Close reasoning"
-                  title="Close reasoning"
-                >
-                  <XCircle size={18} />
-                </button>
-              </div>
-            </div>
-            <div className="overflow-auto p-4">
-              <pre className="whitespace-pre-wrap break-words text-sm text-muted">
-                {message.reasoning}
-              </pre>
-            </div>
+          <div className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-lg border border-border-color bg-panel shadow-xl">
+            {!isEditingReasoning ? (
+              <>
+                <div className="flex items-center justify-between border-b border-border-color px-4 py-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-accent-orange">
+                    <Brain size={16} />
+                    Reasoning
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={handleCopyReasoning}
+                      className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
+                      aria-label="Copy reasoning"
+                      title="Copy reasoning"
+                    >
+                      <Copy size={16} />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingReasoning(true)}
+                      className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
+                      aria-label="Edit reasoning"
+                      title="Edit reasoning"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => setShowReasoning(false)}
+                      className="rounded p-1.5 text-muted hover:bg-card hover:text-main"
+                      aria-label="Close reasoning"
+                      title="Close reasoning"
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  </div>
+                </div>
+                <div className="overflow-auto p-4">
+                  <pre className="whitespace-pre-wrap break-words text-sm text-muted">
+                    {message.reasoning}
+                  </pre>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between border-b border-border-color px-4 py-3">
+                  <div className="text-sm font-semibold text-accent-orange">
+                    Edit Reasoning
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={submitReasoning}
+                      className="rounded p-1.5 text-success-text hover:bg-success-bg"
+                      aria-label="Save reasoning"
+                      title="Save reasoning (Ctrl + Enter)"
+                    >
+                      <Check size={18} />
+                    </button>
+                    <button
+                      onClick={cancelReasoning}
+                      className="rounded p-1.5 text-danger-text hover:bg-danger-bg"
+                      aria-label="Cancel reasoning edit"
+                      title="Cancel"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-auto p-4">
+                  <textarea
+                    ref={reasoningTextareaRef}
+                    defaultValue={message.reasoning ?? ""}
+                    onKeyDown={handleReasoningKeyDown}
+                    className="min-h-[40vh] w-full resize-y rounded border border-border-color bg-input p-4 text-base leading-relaxed text-main focus:border-accent-orange focus:outline-none md:text-lg"
+                  />
+                </div>
+                <div className="border-t border-border-color px-4 py-2 text-xs text-muted">
+                  Ctrl + Enter to save · Esc to cancel
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
