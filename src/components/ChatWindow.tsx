@@ -30,9 +30,9 @@ export function ChatWindow({
   }, [conversation?.messages]);
 
   return (
-    <div className="flex min-w-0 flex-1 overflow-y-auto bg-body p-4">
+    <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
       {!conversation || conversation.messages.length === 0 ? (
-        <div className="flex h-full flex-col items-center justify-center text-muted">
+        <div className="flex h-full flex-col items-center justify-center text-center text-muted">
           <Bot size={48} className="mb-4 text-accent-orange" />
           <p className="text-lg">Start a new conversation</p>
         </div>
