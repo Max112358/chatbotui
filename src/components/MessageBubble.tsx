@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Message } from "@/types";
 import {
   User,
@@ -49,13 +49,15 @@ function useAutoResizeTextarea(
 
 interface MessageBubbleProps {
   message: Message;
+  isStreaming?: boolean;
   onEdit?: (id: string, content: string) => void;
   onEditReasoning?: (id: string, reasoning: string) => void;
   onDelete?: (id: string) => void;
 }
 
-export function MessageBubble({
+function MessageBubbleInternal({
   message,
+  isStreaming = false,
   onEdit,
   onEditReasoning,
   onDelete,
@@ -154,7 +156,7 @@ export function MessageBubble({
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-2 break-words">
-            {!isUser && message.reasoning !== undefined && (
+            {!isUser && (
               <button
                 onClick={() => setShowReasoning(true)}
                 className="flex w-fit items-center gap-2 rounded-full border border-border-color bg-input px-3 py-1 text-xs text-muted transition-colors hover:border-accent-orange hover:text-accent-orange"
@@ -166,7 +168,11 @@ export function MessageBubble({
               </button>
             )}
             <div className="text-sm">
-              <MarkdownRenderer content={message.content} />
+              {isStreaming ? (
+                <div className="whitespace-pre-wrap">{message.content}</div>
+              ) : (
+                <MarkdownRenderer content={message.content} />
+              )}
             </div>
 
             {message.attachments.length > 0 && (
@@ -258,7 +264,7 @@ export function MessageBubble({
         </div>
       )}
 
-      {showReasoning && message.reasoning !== undefined && (
+      {showReasoning && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           onClick={(e) => {
@@ -302,7 +308,11 @@ export function MessageBubble({
                 </div>
                 <div className="overflow-auto p-4">
                   <pre className="whitespace-pre-wrap break-words text-sm text-muted">
-                    {message.reasoning}
+                    {message.reasoning || (
+                      <span className="italic opacity-60">
+                        No reasoning recorded for this message.
+                      </span>
+                    )}
                   </pre>
                 </div>
               </>
@@ -396,3 +406,5 @@ export function MessageBubble({
     </>
   );
 }
+
+export const MessageBubble = memo(MessageBubbleInternal);

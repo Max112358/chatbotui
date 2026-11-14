@@ -31,6 +31,11 @@ export function useChat({
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<{ content: string; reasoning: string }>({
+    content: "",
+    reasoning: "",
+  });
 
   const currentConversation =
     conversations.find((c) => c.id === currentId) ?? null;
@@ -94,8 +99,50 @@ export function useChat({
 
       setIsStreaming(true);
       abortRef.current = new AbortController();
+      pendingRef.current = { content: "", reasoning: "" };
 
-      let chunkCount = 0;
+      const flush = () => {
+        if (flushTimerRef.current) {
+          clearTimeout(flushTimerRef.current);
+          flushTimerRef.current = null;
+        }
+
+        const { content, reasoning } = pendingRef.current;
+        if (!content && !reasoning) return;
+
+        onUpdateConversation(conversation.id, (c) => {
+          const lastIndex = c.messages.length - 1;
+
+          if (
+            lastIndex < 0 ||
+            c.messages[lastIndex].id !== assistantMessage.id
+          ) {
+            return c;
+          }
+
+          const messages = [...c.messages];
+          const last = messages[lastIndex];
+
+          let nextReasoning = last.reasoning;
+          if (reasoning) {
+            nextReasoning = (nextReasoning ?? "") + reasoning;
+          }
+
+          messages[lastIndex] = {
+            ...last,
+            content: last.content + content,
+            reasoning: nextReasoning,
+          };
+
+          return {
+            ...c,
+            messages,
+            updatedAt: Date.now(),
+          };
+        });
+
+        pendingRef.current = { content: "", reasoning: "" };
+      };
 
       try {
         await streamChatCompletion(
@@ -105,47 +152,18 @@ export function useChat({
           model,
           abortRef.current.signal,
           async (chunk) => {
-            chunkCount++;
+            if (chunk.content) pendingRef.current.content += chunk.content;
+            if (chunk.reasoning)
+              pendingRef.current.reasoning += chunk.reasoning;
 
-            onUpdateConversation(conversation.id, (c) => {
-              const lastIndex = c.messages.length - 1;
-
-              if (
-                lastIndex < 0 ||
-                c.messages[lastIndex].id !== assistantMessage.id
-              ) {
-                return c;
-              }
-
-              const messages = [...c.messages];
-              const last = messages[lastIndex];
-
-              messages[lastIndex] = {
-                ...last,
-                content: chunk.content
-                  ? last.content + chunk.content
-                  : last.content,
-                reasoning: chunk.reasoning
-                  ? (last.reasoning ?? "") + chunk.reasoning
-                  : last.reasoning,
-              };
-
-              return {
-                ...c,
-                messages,
-                updatedAt: Date.now(),
-              };
-            });
-
-            if (chunkCount % 8 === 0) {
-              await new Promise<void>((resolve) =>
-                requestAnimationFrame(() => resolve()),
-              );
+            if (!flushTimerRef.current) {
+              flushTimerRef.current = setTimeout(flush, 150);
             }
           },
         );
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
+          flush();
           return;
         }
 
@@ -177,6 +195,11 @@ export function useChat({
           };
         });
       } finally {
+        flush();
+        if (flushTimerRef.current) {
+          clearTimeout(flushTimerRef.current);
+          flushTimerRef.current = null;
+        }
         setIsStreaming(false);
         abortRef.current = null;
       }

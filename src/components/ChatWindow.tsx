@@ -31,30 +31,39 @@ export function ChatWindow({
     messageCountRef.current = newCount;
   }, [conversation?.messages]);
 
-  return (
-    <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
-      {!conversation || conversation.messages.length === 0 ? (
+  if (!conversation || conversation.messages.length === 0) {
+    return (
+      <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
         <div className="flex h-full flex-col items-center justify-center text-center text-muted">
           <Bot size={48} className="mb-4 text-accent-orange" />
           <p className="text-lg">Start a new conversation</p>
         </div>
-      ) : (
-        <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
-          {conversation.messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              onEdit={onEditMessage}
-              onEditReasoning={onEditMessageReasoning}
-              onDelete={onDeleteMessage}
-            />
-          ))}
-          {isStreaming && (
-            <div className="text-sm text-muted">NanoGPT is typing…</div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-      )}
+      </div>
+    );
+  }
+
+  const lastIndex = conversation.messages.length - 1;
+
+  return (
+    <div className="flex-1 min-w-0 overflow-y-auto bg-body p-4">
+      <div className="mx-auto w-full min-w-0 max-w-3xl space-y-6">
+        {conversation.messages.map((message, index) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            isStreaming={
+              isStreaming && index === lastIndex && message.role === "assistant"
+            }
+            onEdit={onEditMessage}
+            onEditReasoning={onEditMessageReasoning}
+            onDelete={onDeleteMessage}
+          />
+        ))}
+        {isStreaming && (
+          <div className="text-sm text-muted">NanoGPT is typing…</div>
+        )}
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 }
