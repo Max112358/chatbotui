@@ -20,6 +20,9 @@ export default function App() {
     createConversation,
     updateConversation,
     deleteConversation,
+    renameConversation,
+    updateMessage,
+    deleteMessage,
   } = useConversations();
 
   const {
@@ -70,6 +73,26 @@ export default function App() {
     [currentConversation, updateConversation],
   );
 
+  const handleEditMessage = useCallback(
+    (messageId: string, content: string) => {
+      if (!currentConversation) return;
+
+      updateMessage(currentConversation.id, messageId, (message) => ({
+        ...message,
+        content,
+      }));
+    },
+    [currentConversation, updateMessage],
+  );
+
+  const handleDeleteMessage = useCallback(
+    (messageId: string) => {
+      if (!currentConversation) return;
+      deleteMessage(currentConversation.id, messageId);
+    },
+    [currentConversation, deleteMessage],
+  );
+
   const isReady = configLoaded && conversationsLoaded;
 
   const handleNewChat = () => {
@@ -94,6 +117,7 @@ export default function App() {
         currentId={currentConversation?.id ?? null}
         onSelect={selectConversation}
         onDelete={deleteConversation}
+        onRename={renameConversation}
         onNewChat={handleNewChat}
         onOpenSettings={() => setIsSettingsOpen(true)}
         isOpen={isSidebarOpen}
@@ -104,6 +128,8 @@ export default function App() {
         <ChatWindow
           conversation={currentConversation}
           isStreaming={isStreaming}
+          onEditMessage={handleEditMessage}
+          onDeleteMessage={handleDeleteMessage}
         />
 
         <MessageInput

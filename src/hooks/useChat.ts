@@ -81,6 +81,7 @@ export function useChat({
         id: generateId(),
         role: "assistant",
         content: "",
+        reasoning: "",
         attachments: [],
         createdAt: Date.now(),
       };
@@ -109,7 +110,6 @@ export function useChat({
             onUpdateConversation(conversation.id, (c) => {
               const lastIndex = c.messages.length - 1;
 
-              // Only update the last message if it's the placeholder we created
               if (
                 lastIndex < 0 ||
                 c.messages[lastIndex].id !== assistantMessage.id
@@ -122,7 +122,12 @@ export function useChat({
 
               messages[lastIndex] = {
                 ...last,
-                content: last.content + chunk,
+                content: chunk.content
+                  ? last.content + chunk.content
+                  : last.content,
+                reasoning: chunk.reasoning
+                  ? (last.reasoning ?? "") + chunk.reasoning
+                  : last.reasoning,
               };
 
               return {
@@ -132,7 +137,6 @@ export function useChat({
               };
             });
 
-            // Yield to the browser every few chunks so the UI can paint
             if (chunkCount % 8 === 0) {
               await new Promise<void>((resolve) =>
                 requestAnimationFrame(() => resolve()),

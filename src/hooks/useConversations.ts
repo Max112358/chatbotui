@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Conversation } from "@/types";
+import { Conversation, Message } from "@/types";
 import { getConversations, saveConversations } from "@/services/storageService";
 import { generateId } from "@/utils/id";
 
@@ -55,11 +55,63 @@ export function useConversations() {
     [persist],
   );
 
+  const renameConversation = useCallback(
+    (id: string, title: string) => {
+      const trimmed = title.trim();
+      if (!trimmed) return;
+
+      persist((prev) =>
+        prev.map((c) =>
+          c.id === id ? { ...c, title: trimmed, updatedAt: Date.now() } : c,
+        ),
+      );
+    },
+    [persist],
+  );
+
+  const updateMessage = useCallback(
+    (
+      conversationId: string,
+      messageId: string,
+      updater: (message: Message) => Message,
+    ) => {
+      persist((prev) =>
+        prev.map((c) => {
+          if (c.id !== conversationId) return c;
+
+          const messages = c.messages.map((m) =>
+            m.id === messageId ? updater(m) : m,
+          );
+
+          return { ...c, messages, updatedAt: Date.now() };
+        }),
+      );
+    },
+    [persist],
+  );
+
+  const deleteMessage = useCallback(
+    (conversationId: string, messageId: string) => {
+      persist((prev) =>
+        prev.map((c) => {
+          if (c.id !== conversationId) return c;
+
+          const messages = c.messages.filter((m) => m.id !== messageId);
+          return { ...c, messages, updatedAt: Date.now() };
+        }),
+      );
+    },
+    [persist],
+  );
+
   return {
     conversations,
     isLoaded,
     createConversation,
     updateConversation,
     deleteConversation,
+    renameConversation,
+    updateMessage,
+    deleteMessage,
   };
 }

@@ -23,6 +23,7 @@ export interface Message {
   id: string;
   role: Role;
   content: string;
+  reasoning?: string;
   attachments: Attachment[];
   createdAt: number;
 }

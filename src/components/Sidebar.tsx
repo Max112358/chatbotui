@@ -7,6 +7,7 @@ interface SidebarProps {
   currentId: string | null;
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, title: string) => void;
   onNewChat: () => void;
   onOpenSettings: () => void;
   isOpen: boolean;
@@ -18,6 +19,7 @@ export function Sidebar({
   currentId,
   onSelect,
   onDelete,
+  onRename,
   onNewChat,
   onOpenSettings,
   isOpen,
@@ -70,6 +72,7 @@ export function Sidebar({
                   onClose();
                 }}
                 onDelete={() => onDelete(conversation.id)}
+                onRename={(title) => onRename(conversation.id, title)}
               />
             ))}
           </div>

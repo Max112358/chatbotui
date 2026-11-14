@@ -10,18 +10,33 @@ export interface ModelListResponse {
   data: ModelInfo[];
 }
 
+export interface ChatChunk {
+  content?: string;
+  reasoning?: string;
+}
+
+interface StreamChoiceDelta {
+  content?: string;
+  reasoning?: string;
+  reasoning_content?: string;
+}
+
+interface StreamChoice {
+  delta?: StreamChoiceDelta;
+}
+
 interface StreamChunk {
-  choices: Array<{
-    delta?: {
-      content?: string;
-    };
-  }>;
+  choices?: StreamChoice[];
+}
+
+interface NonStreamingMessage {
+  content?: string;
+  reasoning?: string;
+  reasoning_content?: string;
 }
 
 interface NonStreamingChoice {
-  message?: {
-    content?: string;
-  };
+  message?: NonStreamingMessage;
 }
 
 interface NonStreamingResponse {
@@ -55,13 +70,20 @@ export async function fetchModels(
   return data.data;
 }
 
+function extractReasoning(
+  delta: StreamChoiceDelta | NonStreamingMessage | undefined,
+): string | undefined {
+  if (!delta) return undefined;
+  return delta.reasoning ?? delta.reasoning_content;
+}
+
 export async function streamChatCompletion(
   baseUrl: string,
   messages: Message[],
   apiKey: string,
   model: string,
   signal: AbortSignal,
-  onChunk: (chunk: string) => void | Promise<void>,
+  onChunk: (chunk: ChatChunk) => void | Promise<void>,
 ): Promise<void> {
   const normalizedBaseUrl = baseUrl.replace(/\/$/, "");
 
@@ -77,6 +99,7 @@ export async function streamChatCompletion(
         role: m.role,
         content: formatMessageContent(m),
       })),
+      reasoning: { enabled: true },
       stream: true,
     }),
     signal,
@@ -87,15 +110,18 @@ export async function streamChatCompletion(
     throw new Error(`API error ${response.status}: ${errorText}`);
   }
 
-  // Fallback for endpoints that ignore stream: true
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
     try {
       const json = (await response.clone().json()) as NonStreamingResponse;
-      const full = json.choices?.[0]?.message?.content ?? "";
-      if (full) {
-        await onChunk(full);
-        return;
+      const message = json.choices?.[0]?.message;
+      if (message) {
+        const content = message.content ?? "";
+        const reasoning = extractReasoning(message);
+        if (content || reasoning) {
+          await onChunk({ content, reasoning });
+          return;
+        }
       }
     } catch {
       // Not JSON, continue to streaming path
@@ -128,9 +154,17 @@ export async function streamChatCompletion(
 
         try {
           const parsed = JSON.parse(data) as StreamChunk;
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (typeof content === "string" && content.length > 0) {
-            await onChunk(content);
+          const delta = parsed.choices?.[0]?.delta;
+          if (!delta) continue;
+
+          const content = delta.content;
+          const reasoning = extractReasoning(delta);
+
+          if (
+            (typeof content === "string" && content.length > 0) ||
+            (typeof reasoning === "string" && reasoning.length > 0)
+          ) {
+            await onChunk({ content, reasoning });
           }
         } catch {
           // malformed chunk, ignore
@@ -138,16 +172,22 @@ export async function streamChatCompletion(
       }
     }
 
-    // Handle trailing buffer
     const trimmed = buffer.trim();
     if (trimmed.startsWith("data: ")) {
       const data = trimmed.slice(6);
       if (data === "[DONE]") return;
       try {
         const parsed = JSON.parse(data) as StreamChunk;
-        const content = parsed.choices?.[0]?.delta?.content;
-        if (typeof content === "string" && content.length > 0) {
-          await onChunk(content);
+        const delta = parsed.choices?.[0]?.delta;
+        if (delta) {
+          const content = delta.content;
+          const reasoning = extractReasoning(delta);
+          if (
+            (typeof content === "string" && content.length > 0) ||
+            (typeof reasoning === "string" && reasoning.length > 0)
+          ) {
+            await onChunk({ content, reasoning });
+          }
         }
       } catch {
         // ignore
