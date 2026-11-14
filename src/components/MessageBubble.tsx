@@ -10,6 +10,7 @@ import {
   Brain,
   Copy,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
@@ -27,6 +28,7 @@ export function MessageBubble({
   const isUser = message.role === "user";
   const [isEditing, setIsEditing] = useState(false);
   const [showReasoning, setShowReasoning] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -89,6 +91,11 @@ export function MessageBubble({
     } catch {
       // ignore
     }
+  };
+
+  const confirmDelete = () => {
+    onDelete?.(message.id);
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -158,7 +165,7 @@ export function MessageBubble({
                 <Pencil size={14} />
               </button>
               <button
-                onClick={() => onDelete?.(message.id)}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="rounded p-1 text-muted hover:bg-danger-bg hover:text-danger-text"
                 aria-label="Delete message"
               >
@@ -168,6 +175,46 @@ export function MessageBubble({
           </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDeleteConfirm(false);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-lg border border-border-color bg-panel p-5 shadow-xl">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="shrink-0 rounded-full bg-danger-bg p-2 text-danger-text">
+                <AlertTriangle size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-main">
+                  Delete {isUser ? "your" : "AI"} message?
+                </h3>
+                <p className="mt-1 text-sm text-muted">
+                  This message will be permanently removed. This cannot be
+                  undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="rounded bg-card px-4 py-2 text-sm font-medium text-main ring-1 ring-border-color transition-colors hover:bg-input"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="rounded bg-danger-bg px-4 py-2 text-sm font-medium text-danger-text ring-1 ring-danger-border transition-colors hover:bg-danger-bg-hover"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showReasoning && message.reasoning && (
         <div
