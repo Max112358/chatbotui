@@ -114,27 +114,6 @@ export default function App() {
     setIsSidebarOpen(false);
   };
 
-  const handleResendMessage = useCallback(
-    (messageId: string) => {
-      if (!currentConversation) return;
-
-      const messageIndex = currentConversation.messages.findIndex(
-        (m) => m.id === messageId,
-      );
-      const message = currentConversation.messages[messageIndex];
-
-      if (!message || message.role !== "user") return;
-
-      const nextMessage = currentConversation.messages[messageIndex + 1];
-      if (nextMessage && nextMessage.role === "assistant") {
-        deleteMessage(currentConversation.id, nextMessage.id);
-      }
-
-      void sendMessage(message.content, message.attachments, selectedModel);
-    },
-    [currentConversation, deleteMessage, selectedModel, sendMessage],
-  );
-
   if (!isReady) return null;
 
   return (
