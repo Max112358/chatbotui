@@ -1,6 +1,8 @@
 import { Conversation, ApiConfig } from "@/types";
 import { API_CONFIG_KEY, DEFAULT_CONFIG, STORAGE_KEY } from "@/constants";
 
+type SaveResult = "saved" | "quota-exceeded" | "error";
+
 function isQuotaError(error: unknown): boolean {
   return (
     error instanceof DOMException &&
@@ -32,23 +34,26 @@ export function getConversations(): Conversation[] {
 
 export function saveConversations(
   conversations: readonly Conversation[],
-): void {
+): SaveResult {
   let remaining = [...conversations];
 
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
-      return;
+      return "saved";
     } catch (error) {
       if (isQuotaError(error) && remaining.length > 0) {
         remaining = pruneOldest(remaining);
+      } else if (isQuotaError(error)) {
+        return "quota-exceeded";
       } else {
-        throw error;
+        console.warn("[storageService] Failed to save conversations:", error);
+        return "error";
       }
     }
   }
 
-  throw new Error("Unable to save conversations within storage quota");
+  return "quota-exceeded";
 }
 
 export function getApiConfig(): ApiConfig | null {
