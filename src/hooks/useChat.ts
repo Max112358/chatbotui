@@ -53,49 +53,16 @@ export function useChat({
     [onCreateConversation],
   );
 
-  const sendMessage = useCallback(
-    async (content: string, attachments: Attachment[], model: string) => {
+  const streamResponse = useCallback(
+    async (
+      conversationId: string,
+      messagesForApi: Message[],
+      assistantMessage: Message,
+      model: string,
+    ) => {
       if (!config || !config.apiKey) {
         throw new Error("API settings are incomplete");
       }
-      if (!content.trim() && attachments.length === 0) return;
-
-      let conversation = currentConversation;
-      if (!conversation) {
-        conversation = createNewConversation(model);
-      }
-
-      const userMessage: Message = {
-        id: generateId(),
-        role: "user",
-        content: content.trim(),
-        attachments,
-        createdAt: Date.now(),
-      };
-
-      const messagesForApi = [...conversation.messages, userMessage];
-
-      onUpdateConversation(conversation.id, (c) => ({
-        ...c,
-        title: c.messages.length === 0 ? buildTitle(content) : c.title,
-        messages: messagesForApi,
-        updatedAt: Date.now(),
-      }));
-
-      const assistantMessage: Message = {
-        id: generateId(),
-        role: "assistant",
-        content: "",
-        reasoning: "",
-        attachments: [],
-        createdAt: Date.now(),
-      };
-
-      onUpdateConversation(conversation.id, (c) => ({
-        ...c,
-        messages: [...c.messages, assistantMessage],
-        updatedAt: Date.now(),
-      }));
 
       setIsStreaming(true);
       abortRef.current = new AbortController();
@@ -110,7 +77,7 @@ export function useChat({
         const { content, reasoning } = pendingRef.current;
         if (!content && !reasoning) return;
 
-        onUpdateConversation(conversation.id, (c) => {
+        onUpdateConversation(conversationId, (c) => {
           const lastIndex = c.messages.length - 1;
 
           if (
@@ -170,7 +137,7 @@ export function useChat({
         const message =
           error instanceof Error ? error.message : "Unknown error";
 
-        onUpdateConversation(conversation.id, (c) => {
+        onUpdateConversation(conversationId, (c) => {
           const lastIndex = c.messages.length - 1;
 
           if (
@@ -204,7 +171,120 @@ export function useChat({
         abortRef.current = null;
       }
     },
-    [config, currentConversation, createNewConversation, onUpdateConversation],
+    [config, onUpdateConversation],
+  );
+
+  const sendMessage = useCallback(
+    async (content: string, attachments: Attachment[], model: string) => {
+      if (!config || !config.apiKey) {
+        throw new Error("API settings are incomplete");
+      }
+      if (!content.trim() && attachments.length === 0) return;
+
+      let conversation = currentConversation;
+      if (!conversation) {
+        conversation = createNewConversation(model);
+      }
+
+      const userMessage: Message = {
+        id: generateId(),
+        role: "user",
+        content: content.trim(),
+        attachments,
+        createdAt: Date.now(),
+      };
+
+      const messagesForApi = [...conversation.messages, userMessage];
+
+      onUpdateConversation(conversation.id, (c) => ({
+        ...c,
+        title: c.messages.length === 0 ? buildTitle(content) : c.title,
+        messages: messagesForApi,
+        updatedAt: Date.now(),
+      }));
+
+      const assistantMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: "",
+        reasoning: "",
+        attachments: [],
+        createdAt: Date.now(),
+      };
+
+      onUpdateConversation(conversation.id, (c) => ({
+        ...c,
+        messages: [...c.messages, assistantMessage],
+        updatedAt: Date.now(),
+      }));
+
+      await streamResponse(
+        conversation.id,
+        messagesForApi,
+        assistantMessage,
+        model,
+      );
+    },
+    [
+      config,
+      currentConversation,
+      createNewConversation,
+      onUpdateConversation,
+      streamResponse,
+    ],
+  );
+
+  const resendMessage = useCallback(
+    async (messageId: string) => {
+      if (!config || !config.apiKey) {
+        throw new Error("API settings are incomplete");
+      }
+
+      const conversation = currentConversation;
+      if (!conversation) return;
+
+      const messageIndex = conversation.messages.findIndex(
+        (m) => m.id === messageId,
+      );
+      const userMessage = conversation.messages[messageIndex];
+
+      if (!userMessage || userMessage.role !== "user") return;
+
+      // Remove the assistant response directly after this prompt, if present
+      const nextMessage = conversation.messages[messageIndex + 1];
+      if (nextMessage && nextMessage.role === "assistant") {
+        onUpdateConversation(conversation.id, (c) => ({
+          ...c,
+          messages: c.messages.filter((m) => m.id !== nextMessage.id),
+          updatedAt: Date.now(),
+        }));
+      }
+
+      const messagesForApi = conversation.messages.slice(0, messageIndex + 1);
+
+      const assistantMessage: Message = {
+        id: generateId(),
+        role: "assistant",
+        content: "",
+        reasoning: "",
+        attachments: [],
+        createdAt: Date.now(),
+      };
+
+      onUpdateConversation(conversation.id, (c) => ({
+        ...c,
+        messages: [...c.messages, assistantMessage],
+        updatedAt: Date.now(),
+      }));
+
+      await streamResponse(
+        conversation.id,
+        messagesForApi,
+        assistantMessage,
+        conversation.model,
+      );
+    },
+    [config, currentConversation, onUpdateConversation, streamResponse],
   );
 
   const stop = useCallback(() => {
@@ -216,6 +296,7 @@ export function useChat({
     selectConversation,
     createNewConversation,
     sendMessage,
+    resendMessage,
     isStreaming,
     stop,
   };

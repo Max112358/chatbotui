@@ -31,6 +31,7 @@ export default function App() {
     selectConversation,
     createNewConversation,
     sendMessage,
+    resendMessage,
     isStreaming,
     stop,
   } = useChat({
@@ -124,7 +125,6 @@ export default function App() {
 
       if (!message || message.role !== "user") return;
 
-      // Remove the assistant response directly after this prompt, if present
       const nextMessage = currentConversation.messages[messageIndex + 1];
       if (nextMessage && nextMessage.role === "assistant") {
         deleteMessage(currentConversation.id, nextMessage.id);
@@ -167,7 +167,7 @@ export default function App() {
           onEditMessage={handleEditMessage}
           onEditMessageReasoning={handleEditMessageReasoning}
           onDeleteMessage={handleDeleteMessage}
-          onResendMessage={handleResendMessage}
+          onResendMessage={resendMessage}
         />
 
         <MessageInput
