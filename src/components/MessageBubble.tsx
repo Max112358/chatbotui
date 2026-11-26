@@ -11,6 +11,7 @@ import {
   Copy,
   XCircle,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
@@ -53,6 +54,7 @@ interface MessageBubbleProps {
   onEdit?: (id: string, content: string) => void;
   onEditReasoning?: (id: string, reasoning: string) => void;
   onDelete?: (id: string) => void;
+  onResend?: (id: string) => void;
 }
 
 function MessageBubbleInternal({
@@ -61,6 +63,7 @@ function MessageBubbleInternal({
   onEdit,
   onEditReasoning,
   onDelete,
+  onResend,
 }: MessageBubbleProps) {
   const isUser = message.role === "user";
   const [isEditing, setIsEditing] = useState(false);
@@ -205,6 +208,16 @@ function MessageBubbleInternal({
             )}
 
             <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              {isUser && (
+                <button
+                  onClick={() => onResend?.(message.id)}
+                  className="rounded p-1 text-muted hover:bg-card hover:text-accent-orange"
+                  aria-label="Resend message"
+                  title="Resend message"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              )}
               <button
                 onClick={() => setIsEditing(true)}
                 className="rounded p-1 text-muted hover:bg-card hover:text-main"
