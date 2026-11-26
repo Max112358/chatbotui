@@ -17,7 +17,6 @@ export default function App() {
   const {
     conversations,
     isLoaded: conversationsLoaded,
-    storageMode,
     createConversation,
     updateConversation,
     deleteConversation,
@@ -135,7 +134,6 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        storageMode={storageMode}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

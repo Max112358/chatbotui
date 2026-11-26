@@ -1,56 +1,26 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Conversation, Message } from "@/types";
 import { getConversations, saveConversations } from "@/services/storageService";
 import { generateId } from "@/utils/id";
 
-export type StorageMode = "persistent" | "memory-only";
-
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [storageMode, setStorageMode] = useState<StorageMode>("persistent");
-
-  // Ref keeps the latest conversations value so `persist` can compute the next
-  // state without depending on the possibly-stale `conversations` closure var.
-  const conversationsRef = useRef<Conversation[]>([]);
 
   useEffect(() => {
-    const loaded = getConversations();
-    setConversations(loaded);
-    conversationsRef.current = loaded;
+    setConversations(getConversations());
     setIsLoaded(true);
   }, []);
 
-  useEffect(() => {
-    conversationsRef.current = conversations;
-  }, [conversations]);
-
   const persist = useCallback(
     (next: Conversation[] | ((prev: Conversation[]) => Conversation[])) => {
-      const value =
-        typeof next === "function"
-          ? (next as (prev: Conversation[]) => Conversation[])(
-              conversationsRef.current,
-            )
-          : next;
-
-      setConversations(value);
-
-      // Once we know localStorage is unusable this session, just keep state
-      // in RAM and avoid the repeated freeze from failed serialization.
-      if (storageMode === "memory-only") {
-        return;
-      }
-
-      const result = saveConversations(value);
-      if (result !== "saved") {
-        console.warn(
-          `[useConversations] Could not persist conversations (${result}); switching to memory-only mode for this session.`,
-        );
-        setStorageMode("memory-only");
-      }
+      setConversations((prev) => {
+        const value = typeof next === "function" ? next(prev) : next;
+        saveConversations(value);
+        return value;
+      });
     },
-    [storageMode],
+    [],
   );
 
   const createConversation = useCallback(
@@ -137,7 +107,6 @@ export function useConversations() {
   return {
     conversations,
     isLoaded,
-    storageMode,
     createConversation,
     updateConversation,
     deleteConversation,
