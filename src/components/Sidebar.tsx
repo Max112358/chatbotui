@@ -1,6 +1,8 @@
 import { Conversation } from "@/types";
 import { Plus, Settings, X } from "lucide-react";
 import { ConversationItem } from "./ConversationItem";
+import { useEffect, useState } from "react";
+import { getStorageEstimate, StorageEstimate } from "@/services/storageService";
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -15,6 +17,14 @@ interface SidebarProps {
   storageMode?: "persistent" | "memory-only";
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / k ** i).toFixed(1))} ${sizes[i]}`;
+}
+
 export function Sidebar({
   conversations,
   currentId,
@@ -27,6 +37,32 @@ export function Sidebar({
   onClose,
   storageMode = "persistent",
 }: SidebarProps) {
+  const [estimate, setEstimate] = useState<StorageEstimate | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      const next = await getStorageEstimate();
+      if (!cancelled) setEstimate(next);
+    }
+
+    refresh();
+
+    const interval = setInterval(refresh, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const barColor =
+    estimate && estimate.percentage > 80
+      ? "var(--danger-text, #ff4444)"
+      : estimate && estimate.percentage > 50
+        ? "var(--accent-orange, #ff9900)"
+        : "var(--text-muted, #9aa0a6)";
+
   return (
     <>
       {isOpen && (
@@ -87,11 +123,50 @@ export function Sidebar({
               <Settings size={16} />
               Settings
             </button>
-            <div className="font-semibold text-accent-orange">NanoGPT Chat</div>
-            <div className="text-xs text-muted">
-              {storageMode === "memory-only"
-                ? "Session-only history (storage quota reached)."
-                : "History stored locally only."}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-accent-orange">
+                  NanoGPT Chat
+                </span>
+                <span
+                  className={`text-[10px] ${
+                    storageMode === "memory-only"
+                      ? "text-danger-text"
+                      : "text-muted"
+                  }`}
+                >
+                  {storageMode === "memory-only" ? "Memory only" : "Persisted"}
+                </span>
+              </div>
+
+              <div>
+                <div className="mb-1 flex items-center justify-between text-[10px] text-muted">
+                  <span>Storage</span>
+                  <span>{estimate ? `${estimate.percentage}%` : "--"}</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-input">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${estimate?.percentage ?? 0}%`,
+                      backgroundColor: barColor,
+                    }}
+                  />
+                </div>
+                {estimate && (
+                  <div className="mt-1 text-[10px] text-muted">
+                    {formatBytes(estimate.usage)} /{" "}
+                    {formatBytes(estimate.quota)}
+                  </div>
+                )}
+              </div>
+
+              <div className="text-xs text-muted">
+                {storageMode === "memory-only"
+                  ? "Session-only history (storage quota reached)."
+                  : "History stored locally only."}
+              </div>
             </div>
           </div>
         </div>

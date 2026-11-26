@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Conversation, Message } from "@/types";
 import { getConversations, saveConversations } from "@/services/storageService";
 import { generateId } from "@/utils/id";
@@ -10,23 +10,46 @@ export function useConversations() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [storageMode, setStorageMode] = useState<StorageMode>("persistent");
 
+  const storageModeRef = useRef<StorageMode>("persistent");
+
   useEffect(() => {
-    setConversations(getConversations());
-    setIsLoaded(true);
+    let cancelled = false;
+
+    getConversations()
+      .then((loaded) => {
+        if (cancelled) return;
+        setConversations(loaded);
+        setIsLoaded(true);
+      })
+      .catch((error) => {
+        console.warn("[useConversations] Failed to load conversations:", error);
+        if (!cancelled) setIsLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
+  // Persist to IndexedDB when conversations change, with a short debounce
   useEffect(() => {
-    if (storageMode === "memory-only") return;
     if (!isLoaded) return;
+    if (storageModeRef.current === "memory-only") return;
 
-    const result = saveConversations(conversations);
-    if (result !== "saved") {
-      console.warn(
-        `[useConversations] Could not persist conversations (${result}); switching to memory-only mode for this session.`,
-      );
-      setStorageMode("memory-only");
-    }
-  }, [conversations, isLoaded, storageMode]);
+    const timeout = setTimeout(async () => {
+      const result = await saveConversations(conversations);
+
+      if (result !== "saved") {
+        console.warn(
+          `[useConversations] Could not persist conversations (${result}); switching to memory-only mode.`,
+        );
+        storageModeRef.current = "memory-only";
+        setStorageMode("memory-only");
+      }
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [conversations, isLoaded]);
 
   const persist = useCallback(
     (next: Conversation[] | ((prev: Conversation[]) => Conversation[])) => {

@@ -1,59 +1,43 @@
 import { Conversation, ApiConfig } from "@/types";
 import { API_CONFIG_KEY, DEFAULT_CONFIG, STORAGE_KEY } from "@/constants";
+import {
+  getConversationsFromIndexedDB,
+  saveConversationsToIndexedDB,
+} from "./indexedDbService";
 
-type SaveResult = "saved" | "quota-exceeded" | "error";
+export type SaveResult = "saved" | "quota-exceeded" | "error";
 
-function isQuotaError(error: unknown): boolean {
-  return (
-    error instanceof DOMException &&
-    (error.name === "QuotaExceededError" ||
-      error.name === "NS_ERROR_DOM_QUOTA_REACHED")
-  );
-}
-
-function pruneOldest(conversations: readonly Conversation[]): Conversation[] {
-  if (conversations.length <= 1) {
-    return [...conversations];
-  }
-
-  const oldestId = conversations.reduce((oldest, current) =>
-    current.updatedAt < oldest.updatedAt ? current : oldest,
-  ).id;
-
-  return conversations.filter((c) => c.id !== oldestId);
-}
-
-export function getConversations(): Conversation[] {
+export async function getConversations(): Promise<Conversation[]> {
   try {
+    const fromIDB = await getConversationsFromIndexedDB();
+    if (fromIDB.length > 0) {
+      return fromIDB;
+    }
+
+    // Legacy migration from localStorage
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Conversation[]) : [];
-  } catch {
+    if (raw) {
+      const parsed = JSON.parse(raw) as Conversation[];
+      await saveConversationsToIndexedDB(parsed);
+      return parsed;
+    }
+    return [];
+  } catch (error) {
+    console.warn("[storageService] Failed to load conversations:", error);
     return [];
   }
 }
 
-export function saveConversations(
+export async function saveConversations(
   conversations: readonly Conversation[],
-): SaveResult {
-  let remaining = [...conversations];
+): Promise<SaveResult> {
+  const result = await saveConversationsToIndexedDB(conversations);
 
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(remaining));
-      return "saved";
-    } catch (error) {
-      if (isQuotaError(error) && remaining.length > 0) {
-        remaining = pruneOldest(remaining);
-      } else if (isQuotaError(error)) {
-        return "quota-exceeded";
-      } else {
-        console.warn("[storageService] Failed to save conversations:", error);
-        return "error";
-      }
-    }
+  if (result === "error") {
+    return "error";
   }
 
-  return "quota-exceeded";
+  return "saved";
 }
 
 export function getApiConfig(): ApiConfig | null {
@@ -68,4 +52,26 @@ export function getApiConfig(): ApiConfig | null {
 
 export function setApiConfig(config: ApiConfig): void {
   localStorage.setItem(API_CONFIG_KEY, JSON.stringify(config));
+}
+
+export interface StorageEstimate {
+  quota: number;
+  usage: number;
+  percentage: number;
+}
+
+export async function getStorageEstimate(): Promise<StorageEstimate | null> {
+  if (!navigator.storage?.estimate) return null;
+
+  try {
+    const est = await navigator.storage.estimate();
+    const quota = est.quota ?? 0;
+    const usage = est.usage ?? 0;
+    const percentage =
+      quota > 0 ? Math.min(100, Math.round((usage / quota) * 100)) : 0;
+
+    return { quota, usage, percentage };
+  } catch {
+    return null;
+  }
 }
