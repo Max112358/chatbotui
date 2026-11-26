@@ -12,6 +12,7 @@ interface SidebarProps {
   onOpenSettings: () => void;
   isOpen: boolean;
   onClose: () => void;
+  storageMode?: "persistent" | "memory-only";
 }
 
 export function Sidebar({
@@ -24,6 +25,7 @@ export function Sidebar({
   onOpenSettings,
   isOpen,
   onClose,
+  storageMode = "persistent",
 }: SidebarProps) {
   return (
     <>
@@ -87,7 +89,9 @@ export function Sidebar({
             </button>
             <div className="font-semibold text-accent-orange">NanoGPT Chat</div>
             <div className="text-xs text-muted">
-              History stored locally only.
+              {storageMode === "memory-only"
+                ? "Session-only history (storage quota reached)."
+                : "History stored locally only."}
             </div>
           </div>
         </div>
