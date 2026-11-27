@@ -2,7 +2,7 @@ import { ApiConfig } from "@/types";
 
 export const DEFAULT_BASE_URL = "https://api.nano-gpt.com/api/v1";
 
-export const DEFAULT_MODEL = "moonshotai/kimi-k2.7-code";
+export const DEFAULT_MODEL = "z-ai/glm-5.3:thinking";
 
 export const AVAILABLE_MODELS = [
   "moonshotai/kimi-k2.7-code",
